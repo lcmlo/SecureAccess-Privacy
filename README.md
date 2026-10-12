@@ -1,116 +1,139 @@
-# MFA Flask Prototype (Password + TOTP)
+# SecureAccess Privacy
 
-Protótipo simples de **Autenticação Multi‑Fator (MFA)** com **Flask** em Python:
-- 1.º fator: *username + password*
-- 2.º fator: **TOTP** (compatível com Google Authenticator, Authy, etc.)
+**Privacy by Design in a Flask-Based Authentication System**
 
+O SecureAccess Privacy é um protótipo web desenvolvido em Python com Flask, que evolui o projeto [SecureAccess](https://github.com/lcmlo/SecureAccess), inicialmente concebido para demonstrar autenticação multifator (MFA) através de username, password e TOTP (*Time-Based One-Time Password*).
 
-![secureAccess](https://github.com/user-attachments/assets/e793e0eb-9432-4f2c-aa34-f826a8b839c8)
+O projeto é desenvolvido no âmbito da unidade curricular de **Privacidade de Dados** e tem como objetivo estudar e aplicar medidas de proteção da privacidade ao longo do ciclo de vida dos dados tratados por um sistema de autenticação.
 
-## Team Members
-Este projeto foi desenvolvido em colaboração por:
-* Miguel Bento (GitHub: mvbento)
-* Luís Lourenço (GitHub: lcmlo)
-* Ricardo Ourelo (GitHub: ricardo-ourelo)
-* Josué da Glória (GitHub: josueclm)
+A evolução proposta segue a abordagem *Privacy by Design* (PbD) e considera princípios como a minimização de dados, a pseudonimização, a limitação da conservação, a transparência e o controlo de acesso.
 
-## Documentação
-O relatório completo com a fundamentação teórica, análise de riscos e revisão de literatura encontra-se no ficheiro: [Secure_Access_SRSI_Theoretical.pdf](./Secure_Access_SRSI_Theoretical.pdf)
+## Objetivos
 
-## 1) Pré‑requisitos
-- Python 3.11+
-- (Opcional) Ambiente virtual `venv`
+- Analisar os dados pessoais e de autenticação tratados pelo sistema.
+- Aplicar os princípios de *Privacy by Design* desde a conceção das novas funcionalidades.
+- Minimizar os dados recolhidos e armazenados.
+- Implementar registos de autenticação com informação limitada e identificadores pseudonimizados.
+- Definir mecanismos de retenção e eliminação de dados.
+- Disponibilizar funcionalidades de consulta, exportação e eliminação dos dados associados à conta.
+- Reforçar o controlo de acesso segundo o princípio do menor privilégio.
 
-## 2) Instalação (com o terminal na pasta raiz do projeto)
+## Funcionalidades
+
+### Protótipo de base
+
+- Registo e autenticação de utilizadores.
+- Autenticação multifator através de TOTP.
+- Armazenamento de passwords através de hash.
+- Cifragem dos segredos TOTP armazenados.
+- Gestão de sessão e acesso a uma área autenticada.
+
+### Evolução orientada para a privacidade
+
+As seguintes funcionalidades constituem objetivos de desenvolvimento e serão identificadas como implementadas apenas após a respetiva validação.
+
+- Registos de autenticação minimizados e pseudonimizados.
+- Política de retenção e eliminação de registos.
+- Área de consulta dos dados associados à conta.
+- Exportação dos dados do utilizador.
+- Eliminação da conta e tratamento dos dados associados.
+- Perfis de acesso e restrição das operações administrativas.
+
+## Tecnologias
+
+- **Python** — linguagem de programação.
+- **Flask** — framework web.
+- **SQLite** — sistema de gestão de base de dados.
+- **TOTP** — mecanismo de autenticação multifator.
+- **cryptography** — biblioteca utilizada para a cifragem dos segredos TOTP.
+
+## Enquadramento
+
+O projeto tem como referência os princípios de *Privacy by Design*, o Regulamento Geral sobre a Proteção de Dados (RGPD) e recomendações técnicas relevantes para a segurança e privacidade dos sistemas de autenticação.
+
+## Equipa
+
+Projeto desenvolvido no âmbito da unidade curricular de **Privacidade de Dados** por:
+
+- Miguel Bento — GitHub: [mvbento](https://github.com/mvbento)
+- Luís Lourenço — GitHub: [lcmlo](https://github.com/lcmlo)
+- Ricardo Ourelo — GitHub: [ricardo-ourelo](https://github.com/ricardo-ourelo)
+- Josué da Glória — GitHub: [josueclm](https://github.com/josueclm)
+- Daniel Morgado — GitHub:
+
+## Instalação e execução
+
+### Pré-requisitos
+
+- Python 3.11 ou superior.
+- Git.
+- Ambiente virtual Python recomendado.
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/TEU-UTILIZADOR/SecureAccess-Privacy.git
+cd SecureAccess-Privacy
+```
+
+Substituir o URL pelo endereço real do repositório.
+
+### 2. Criar e ativar o ambiente virtual
+
 ```bash
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
+```
 
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+### 3. Instalar as dependências
+
+```bash
 pip install -r requirements.txt
 ```
 
-## 3) Variáveis de ambiente (via arquivo .env)
-As variáveis são carregadas automaticamente pelo python-dotenv.
-Cria um ficheiro chamado .env na raiz do projeto:
-```bash
-FLASK_SECRET_KEY=uma-chave-forte-aqui
-MFA_ENC_KEY=A_TUA_CHAVE_GERADA_AQUI
+### 4. Configurar as variáveis de ambiente
+
+Criar um ficheiro `.env` na raiz do projeto, de acordo com as variáveis exigidas pela aplicação:
+
+```dotenv
+FLASK_SECRET_KEY=SUBSTITUIR_POR_UMA_CHAVE_FORTE
+MFA_ENC_KEY=SUBSTITUIR_POR_UMA_CHAVE_FERNET
 MFA_DB_PATH=mfa.db
 ```
 
-Como gerar a chave MFA_ENC_KEY:
-```bash
-python
-from cryptography.fernet import Fernet
-print(Fernet.generate_key().decode())
-exit()
-```
+As chaves devem ser geradas para o ambiente local. O ficheiro `.env` não deve ser incluído no repositório.
 
-## 4) Executar
-Caso ainda não esteja ativa, ativa a venv
-```bash
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
-```
-Depois, executa a app
+### 5. Executar a aplicação
+
 ```bash
 python app.py
-# A aplicação ficará disponível em http://127.0.0.1:5000 e como host no seu ip no porto 5000
 ```
 
-## 5) Fluxo de utilização
-1. Acede a **/register** e cria um utilizador.
-2. Faz **login** com username/password.
-3. Serás redirecionado para **/setup_mfa** (primeiro login):
-   - Digitaliza o QR Code com o **Google Authenticator** (ou app semelhante).
-   - Introduz o código de 6 dígitos para confirmar.
-4. Em logins futuros, o sistema pedirá o **código TOTP** em **/mfa**.
-5. Após a validação, serás redirecionado para o **dashboard**.
+Se a aplicação iniciar corretamente, poderá ser acedida em `http://127.0.0.1:5000`, conforme a configuração do servidor.
 
-## 6) Estrutura
-```text
-mfa_flask_prototype/
-├─ .env
-├─ app.py
-├─ requirements.txt
-├─ README.md
-├─ templates/
-│  ├─ base.html
-│  ├─ login.html
-│  ├─ register.html
-│  ├─ setup_mfa.html
-│  ├─ mfa.html
-│  └─ dashboard.html
-└─ static/
-   └─ styles.css
-```
+## Segurança e privacidade
 
-## 7) Notas de segurança (produção)
-- **NÃO** reutilizes a `SECRET_KEY` deste repositório; define uma chave forte via variável de ambiente.
-- Passwords são guardadas com hash (`werkzeug.security`).
-- Segredos TOTP encriptados via cryptography.Fernet (AES-128)
-- Ativa HTTPS (TLS) quando publicares.
-- Considera rate‑limiting e CSRF.
-- Garante que o ficheiro .env está incluído no .gitignore, o que vem por default deve ser alterado e excluido de versionamento
-- Sessões Flask isoladas por SECRET_KEY
-- Para *phishing-resistance*, considera **FIDO2/WebAuthn** (chaves físicas).
+- Não armazenar passwords em texto simples.
+- Proteger os segredos TOTP através de cifragem.
+- Não registar passwords, códigos TOTP ou segredos criptográficos nos logs.
+- Evitar expor identificadores de sessão e outros dados sensíveis nos registos.
+- Aplicar o princípio do menor privilégio.
+- Definir prazos de conservação adequados à finalidade dos registos.
+- Excluir ficheiros de configuração, chaves e bases de dados locais do controlo de versões.
 
-## 8) Testes rápidos
-- Introduz códigos TOTP errados: o login deve falhar.
-- Teste 1: Registos simultâneos com o mesmo username
-Um cliente deve conseguir registar
-O outro deve receber "Esse username já existe"
-- Teste 2: Dois utilizadores ativam MFA ao mesmo tempo -> QR Codes diferentes -> Segredos TOTP diferentes -> Códigos TOTP distintos mesmo no mesmo instante
-- Teste 3: Segredos TOTP encriptados ->
-BD não deve ter segredos em plaintext ->
-Campo totp_secret contém textos iniciados por gAAAA...
+O protótipo destina-se a fins académicos e de demonstração. A sua utilização em produção exige uma avaliação adicional da segurança, da privacidade e dos requisitos operacionais.
 
-## 9) Licença
-Uso académico/demonstração.
+## Licença
 
-
+Projeto académico desenvolvido no âmbito da unidade curricular de Privacidade de Dados.
