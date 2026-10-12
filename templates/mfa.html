@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Segundo Fator</h1>
+    <p>Introduz o código TOTP da tua app de autenticação.</p>
+    <form method="post">
+        <label>
+            Código de 6 dígitos
+            <input type="text" name="token" pattern="\d{6}" maxlength="6" placeholder="123456" required>
+        </label>
+        <button type="submit">Validar</button>
+    </form>
+</section>
+{% endblock %}

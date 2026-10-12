@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Dashboard</h1>
+    <p>Bem-vindo, <strong>{{ username }}</strong>.</p>
+    {% if mfa_enabled %}
+      <p>Estado MFA: <span class="badge ok">Ativo</span></p>
+    {% else %}
+      <p>Estado MFA: <span class="badge warn">Desativado</span></p>
+      <p><a href="{{ url_for('setup_mfa') }}">Ativar agora</a></p>
+    {% endif %}
+    <p>Este é um protótipo académico para demonstrar o fluxo de MFA (password + TOTP).</p>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Ativar MFA</h1>
+    <p>Olá <strong>{{ username }}</strong>! Associa a tua conta a uma app de autenticação (Google Authenticator, Authy, etc.).</p>
+    <div class="qr">
+        <img alt="QR Code TOTP" src="data:image/png;base64,{{ qr_b64 }}">
+    </div>
+    <p class="mono small">URI: {{ uri }}</p>
+    <details>
+        <summary>Não consegues ler o QR Code?</summary>
+        <p>Segredo TOTP (manual): <code class="mono">{{ secret }}</code></p>
+    </details>
+    <form method="post">
+        <label>
+            Código de 6 dígitos da app
+            <input type="text" name="token" pattern="\d{6}" maxlength="6" placeholder="123456" required>
+        </label>
+        <button type="submit">Confirmar e ativar</button>
+    </form>
+</section>
+{% endblock %}
