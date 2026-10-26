@@ -1,22 +1,21 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<section class="card">
-    <h1>Ativar MFA</h1>
-    <p>Olá <strong>{{ username }}</strong>! Associa a tua conta a uma app de autenticação (Google Authenticator, Authy, etc.).</p>
+    <section class="card auth-card">
+    <p class="eyebrow">PROTEJA A SUA CONTA</p>
+    <h1>Configurar MFA</h1>
+    <p>Leia o QR Code com uma aplicação TOTP. Confirme o código para concluir a ativação.</p>
     <div class="qr">
-        <img alt="QR Code TOTP" src="data:image/png;base64,{{ qr_b64 }}">
+    <img alt="QR Code para configurar autenticação multifator" src="data:image/png;base64,{{ qr_b64 }}" width="200" height="200">
     </div>
-    <p class="mono small">URI: {{ uri }}</p>
     <details>
-        <summary>Não consegues ler o QR Code?</summary>
-        <p>Segredo TOTP (manual): <code class="mono">{{ secret }}</code></p>
+    <summary>Configuração manual</summary>
+    <p>Introduza esta chave apenas na sua aplicação de autenticação:</p>
+    <code>{{ secret }}</code>
     </details>
-    <form method="post">
-        <label>
-            Código de 6 dígitos da app
-            <input type="text" name="token" pattern="\d{6}" maxlength="6" placeholder="123456" required>
-        </label>
-        <button type="submit">Confirmar e ativar</button>
+    <p class="hint">O QR Code é gerado em memória e não é guardado. A chave é conservada cifrada. Nunca partilhe este ecrã.</p>
+    <form method="post">{{ csrf() }}<label>Código de seis dígitos<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+    </label>
+    <button>Confirmar e ativar MFA</button>
     </form>
-</section>
+    </section>
 {% endblock %}

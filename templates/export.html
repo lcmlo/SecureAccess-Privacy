@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+    <section class="card narrow">
+    <h2>Uma cópia dos seus dados</h2>
+    <p>O ficheiro é gerado em memória e contém exclusivamente dados da sua conta. Segredos, hashes e sessões são excluídos.</p>
+    <form method="post">{{ csrf() }}<fieldset>
+    <legend>Dados a incluir</legend>
+    <label class="check">
+    <input type="checkbox" name="categories" value="account" checked> Informações da conta</label>
+    <label class="check">
+    <input type="checkbox" name="categories" value="history" checked> Histórico de autenticação e atividade</label>
+    <label class="check">
+    <input type="checkbox" name="categories" value="requests"> Pedidos de eliminação</label>
+    </fieldset>
+    <label>Formato<select name="format">
+    <option value="json">JSON</option>
+    <option value="csv">CSV</option>
+    </select>
+    </label>{{ identity() }}<button>Confirmar e descarregar</button>
+    </form>
+    </section>
+{% endblock %}

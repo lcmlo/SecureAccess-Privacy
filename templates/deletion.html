@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+    <section class="card narrow">
+    <h2>Solicitar a eliminação da conta</h2>
+    <div class="notice">A conclusão do pedido elimina a conta, o hash, o segredo MFA e os eventos associados. Perderá o acesso de forma definitiva.</div>
+    <p>A submissão não elimina imediatamente os dados. Um administrador analisa e processa o pedido. Este protótipo não implementa obrigações legais especiais de conservação: não devem ser introduzidos dados sujeitos a essas obrigações.</p>
+    <p>É conservado durante {{ receipts_retention }} dias um comprovativo mínimo de processamento, sem ligação à conta eliminada.</p>
+    <form method="post">{{ csrf() }}<label>Escreva ELIMINAR para confirmar<input name="confirmation" required pattern="ELIMINAR" autocomplete="off">
+    </label>{{ identity() }}<button class="destructive">Submeter pedido de eliminação</button>
+    </form>
+    </section>
+    <section class="card">
+    <h2>Os meus pedidos</h2>
+    <div class="table-wrap">
+    <table>
+    <thead>
+    <tr>
+    <th>Pedido</th>
+    <th>Data (UTC)</th>
+    <th>Estado</th>
+    <th>Conclusão (UTC)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in requests %}
+        <tr>
+        <td>#{{ row.id }}</td>
+        <td>{{ row.requested_at }}</td>
+        <td>
+        <span class="badge warn">{{ row.status }}</span>
+        </td>
+        <td>{{ row.completed_at or '—' }}</td>
+        </tr>
+    {% else %}
+        <tr>
+        <td colspan="4">Ainda não apresentou pedidos.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+    </section>
+{% endblock %}

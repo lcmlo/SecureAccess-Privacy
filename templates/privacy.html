@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="cards">
+    <section class="card">
+    <h2>O que guardamos</h2>
+    <ul>
+    <li>Identificador e nome de utilizador, perfil, estado e data de criação.</li>
+    <li>Hash da palavra-passe e segredo TOTP cifrado.</li>
+    <li>Estado da MFA, último intervalo TOTP aceite e versão de sessão.</li>
+    <li>Eventos mínimos pseudonimizados, pedidos e histórico de processamento.</li>
+    <li>Contadores temporários pseudonimizados para limitar tentativas.</li>
+    </ul>
+    </section>
+    <section class="card">
+    <h2>O que não guardamos</h2>
+    <ul>
+    <li>Palavra-passe original.</li>
+    <li>Códigos TOTP utilizados: apenas o número do último intervalo aceite.</li>
+    <li>Segredo TOTP em texto simples.</li>
+    <li>QR Code da configuração.</li>
+    <li>Morada, telefone, localização ou histórico de dispositivos.</li>
+    </ul>
+    </section>
+    <section class="card">
+    <h2>Retenção</h2>
+    <p>Dados da conta: até à eliminação concluída. Logs: {{ retention }} dias, com remoção antecipada dos eventos associados quando a conta é eliminada.</p>
+    <p>Comprovativos concluídos sem ligação à conta: {{ receipts_retention }} dias. Pedidos pendentes são conservados até ao tratamento. Contadores de tentativas: 15 minutos.</p>
+    <p>Sessão autenticada: 30 minutos. Autenticação pendente: cinco minutos.</p>
+    </section>
+    <section class="card">
+    <h2>Os meus direitos</h2>
+    <p>Pode consultar e exportar os seus dados, e solicitar a eliminação. Os pedidos são tratados por um administrador.</p>
+    <div class="actions">
+    <a href="{{ url_for('privacy.data') }}">Consultar dados</a>
+    <a href="{{ url_for('privacy.export') }}">Exportar</a>
+    <a href="{{ url_for('privacy.deletion') }}">Solicitar eliminação</a>
+    </div>
+    <p class="hint">Protótipo académico: estas funcionalidades não constituem uma declaração de conformidade integral com o RGPD.</p>
+    </section>
+    </div>
+{% endblock %}

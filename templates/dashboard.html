@@ -1,14 +1,23 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<section class="card">
-    <h1>Dashboard</h1>
-    <p>Bem-vindo, <strong>{{ username }}</strong>.</p>
-    {% if mfa_enabled %}
-      <p>Estado MFA: <span class="badge ok">Ativo</span></p>
-    {% else %}
-      <p>Estado MFA: <span class="badge warn">Desativado</span></p>
-      <p><a href="{{ url_for('setup_mfa') }}">Ativar agora</a></p>
-    {% endif %}
-    <p>Este é um protótipo académico para demonstrar o fluxo de MFA (password + TOTP).</p>
-</section>
+    <div class="cards">
+    {% for label,value,description,endpoint in cards %}
+        <a class="card metric" href="{{ url_for(endpoint) }}">
+        <span class="metric-icon" aria-hidden="true">{{ ['◇','◷','▤','↓'][loop.index0] }}</span>
+        <div>
+        <h2>{{ label }}</h2>
+        <strong>{{ value }}</strong>
+        <p>{{ description }}</p>
+        </div>
+        <span aria-hidden="true">›</span>
+        </a>
+    {% endfor %}
+    </div>
+    <section class="card">
+    <div class="section-heading">
+    <h2>Atividade recente</h2>
+    <a href="{{ url_for('admin.logs') if administrative else url_for('privacy.history') }}">Ver tudo →</a>
+    </div>
+    {% include '_log_table.html' %}
+    </section>
 {% endblock %}

@@ -1,14 +1,13 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<section class="card">
-    <h1>Segundo Fator</h1>
-    <p>Introduz o código TOTP da tua app de autenticação.</p>
-    <form method="post">
-        <label>
-            Código de 6 dígitos
-            <input type="text" name="token" pattern="\d{6}" maxlength="6" placeholder="123456" required>
-        </label>
-        <button type="submit">Validar</button>
+    <section class="card auth-card">
+    <p class="eyebrow">SEGUNDO FATOR</p>
+    <h1>Confirmar autenticação</h1>
+    <p>Introduza o código atual da sua aplicação de autenticação. O pedido expira ao fim de cinco minutos.</p>
+    <form method="post">{{ csrf() }}<label>Código de seis dígitos<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+    </label>
+    <button>Validar código</button>
     </form>
-</section>
+    <a href="{{ url_for('auth.login') }}">Voltar à autenticação</a>
+    </section>
 {% endblock %}

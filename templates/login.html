@@ -1,18 +1,16 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<section class="card">
-    <h1>Login</h1>
-    <form method="post">
-        <label>
-            Username
-            <input type="text" name="username" required>
-        </label>
-        <label>
-            Password
-            <input type="password" name="password" required>
-        </label>
-        <button type="submit">Entrar</button>
+    <section class="card auth-card">
+    <p class="eyebrow">BEM-VINDO AO SECUREACCESS</p>
+    <h1>Iniciar sessão</h1>
+    <p>Aceda ao seu espaço de segurança e privacidade.</p>
+    <form method="post">{{ csrf() }}<label>Nome de utilizador<input name="username" autocomplete="username" maxlength="64" required>
+    </label>
+    <label>Palavra-passe<input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+    </label>
+    <button>Entrar com segurança</button>
     </form>
-    <p class="hint">Ainda não tens conta? <a href="{{ url_for('register') }}">Regista-te</a>.</p>
-</section>
+    <p class="hint">Ainda não tem conta? <a href="{{ url_for('auth.register') }}">Criar conta</a>
+    </p>
+    </section>
 {% endblock %}
