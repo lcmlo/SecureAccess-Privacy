@@ -1,0 +1,12 @@
+﻿{% extends 'layouts/base.html' %}
+{% block body_class %}authenticated user-area{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/user.js') }}" defer></script>{% endblock %}
+{% block shell %}
+    <aside>
+        <a class="brand" href="{{ url_for('user.dashboard') }}">{% include 'components/brand.html' %}</a>
+        {% include 'components/sidebar_user.html' %}
+        <div class="sidebar-note">Privacidade desde a conceção<br><small>Projeto académico · SecureAccess</small></div>
+    </aside>
+    {% include 'components/navbar.html' %}
+{% endblock %}

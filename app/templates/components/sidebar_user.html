@@ -1,0 +1,8 @@
+﻿<nav aria-label="Menu do utilizador">
+    {% set menu=[('user.dashboard','Dashboard','⌂'),('user.data','Os meus dados','♙'),('user.history','Histórico de acessos','◷'),('privacy.center','Centro de Privacidade','◇'),('privacy.export','Exportação de dados','↓'),('privacy.deletion','Pedido de eliminação','▤')] %}
+    {% for endpoint,label,icon in menu %}
+        <a class="{{ 'selected' if request.endpoint == endpoint }}" href="{{ url_for(endpoint) }}" {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+            <span aria-hidden="true">{{ icon }}</span>{{ label }}
+        </a>
+    {% endfor %}
+</nav>

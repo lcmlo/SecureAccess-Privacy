@@ -1,0 +1,13 @@
+{% extends 'layouts/auth_base.html' %}
+{% block content %}
+    <section class="card auth-card">
+    <p class="eyebrow">SEGUNDO FATOR</p>
+    <h1>Confirmar autenticação</h1>
+    <p>Introduza o código atual da sua aplicação de autenticação. O pedido expira ao fim de cinco minutos.</p>
+    <form method="post">{{ csrf() }}<label>Código de seis dígitos<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+    </label>
+    <button>Validar código</button>
+    </form>
+    <a href="{{ url_for('auth.login') }}">Voltar à autenticação</a>
+    </section>
+{% endblock %}

@@ -1,0 +1,7 @@
+﻿{% with messages=get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="flash" role="status">
+            {{ message }}<button type="button" class="dismiss-alert" data-dismiss-alert aria-label="Fechar mensagem">×</button>
+        </div>
+    {% endfor %}
+{% endwith %}

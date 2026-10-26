@@ -1,0 +1,4 @@
+﻿{% extends 'layouts/base.html' %}
+{% block body_class %}public{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+{% block shell %}<div class="public-brand brand">{% include 'components/brand.html' %}</div>{% endblock %}

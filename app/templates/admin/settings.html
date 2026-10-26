@@ -1,0 +1,30 @@
+{% extends 'layouts/admin_base.html' %}
+{% block content %}
+    <div class="cards">
+    <section class="card">
+    <h2>Segurança</h2>
+    <p>Novas palavras-passe: 12 a 128 caracteres, hash scrypt. MFA TOTP obrigatória, sem reutilização do mesmo intervalo. Cinco tentativas por identidade e origem a cada 15 minutos.</p>
+    <p>Sessões: 30 minutos, cookies HttpOnly e SameSite=Lax. Autenticação pendente: cinco minutos. Operações sensíveis exigem palavra-passe e novo código MFA.</p>
+    </section>
+    <section class="card">
+    <h2>Retenção de logs</h2>
+    <p>Logs: {{ retention }} dias. Comprovativos concluídos desvinculados: {{ receipts_retention }} dias. Limpeza automática em pedidos HTTP e comando de manutenção agendável.</p>
+    <p>Os prazos são fixos neste protótipo. Consulte o README para configurar a tarefa diária no Windows.</p>
+    </section>
+    <section class="card">
+    <h2>Políticas de privacidade</h2>
+    <p>Sem recolha de localização ou dispositivos. Referências HMAC nos logs. Na eliminação removem-se a conta e os seus eventos; o comprovativo fica sem ligação à identidade.</p>
+    <a href="{{ url_for('privacy.center') }}">Consultar informação sobre o tratamento de dados</a>
+    </section>
+    <section class="card">
+    <h2>Exportação</h2>
+    <p>JSON e CSV dos próprios dados. Confirmação com palavra-passe e MFA, exclusão de segredos, geração em memória e registo da operação.</p>
+    <a href="{{ url_for('privacy.export') }}">Exportar os meus dados</a>
+    </section>
+    </div>
+    <section class="card narrow">
+    <h2>Executar limpeza</h2>
+    <form method="post">{{ csrf() }}{{ identity() }}<button>Eliminar registos expirados</button>
+    </form>
+    </section>
+{% endblock %}

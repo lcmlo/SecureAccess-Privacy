@@ -1,0 +1,21 @@
+{% extends 'layouts/auth_base.html' %}
+{% block content %}
+    <section class="card auth-card">
+    <p class="eyebrow">PROTEJA A SUA CONTA</p>
+    <h1>Configurar MFA</h1>
+    <p>Leia o QR Code com uma aplicação TOTP. Confirme o código para concluir a ativação.</p>
+    <div class="qr">
+    <img alt="QR Code para configurar autenticação multifator" src="data:image/png;base64,{{ qr_b64 }}" width="200" height="200">
+    </div>
+    <details>
+    <summary>Configuração manual</summary>
+    <p>Introduza esta chave apenas na sua aplicação de autenticação:</p>
+    <code>{{ secret }}</code>
+    </details>
+    <p class="hint">O QR Code é gerado em memória e não é guardado. A chave é conservada cifrada. Nunca partilhe este ecrã.</p>
+    <form method="post">{{ csrf() }}<label>Código de seis dígitos<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+    </label>
+    <button>Confirmar e ativar MFA</button>
+    </form>
+    </section>
+{% endblock %}

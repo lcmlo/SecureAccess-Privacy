@@ -5,3 +5,10 @@ __pycache__/
 mfa.db
 .venv/
 .DS_Store
+.env
+*.db
+*.db-*
+*.bak
+.pytest_cache/
+artifacts/
+instance/

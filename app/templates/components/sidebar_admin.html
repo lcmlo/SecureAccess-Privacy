@@ -1,0 +1,8 @@
+﻿<nav aria-label="Menu administrativo">
+    {% set menu=[('admin.dashboard','Dashboard','⌂'),('admin.users','Utilizadores','♙'),('admin.logs','Logs de autenticação','◷'),('admin.deletions','Pedidos de eliminação','▤'),('admin.permissions','Perfis e permissões','◇'),('admin.settings','Definições','⚙')] %}
+    {% for endpoint,label,icon in menu %}
+        <a class="{{ 'selected' if request.endpoint == endpoint }}" href="{{ url_for(endpoint) }}" {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+            <span aria-hidden="true">{{ icon }}</span>{{ label }}
+        </a>
+    {% endfor %}
+</nav>

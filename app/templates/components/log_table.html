@@ -1,0 +1,34 @@
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Data e hora (UTC)</th>
+{% if administrative %}
+    <th>Referência pseudonimizada</th>
+{% endif %}
+<th>Tipo de evento</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+{% for row in logs %}
+    <tr>
+    <td>{{ row.event_timestamp }}</td>
+    {% if administrative %}
+        <td>
+        <code class="reference">{{ row.user_ref }}</code>
+        </td>
+    {% endif %}
+    <td>{{ events.get(row.event_type,row.event_type) }}</td>
+    <td>
+    <span class="badge {{ 'ok' if row.result == 'sucesso' else 'danger' }}">{{ row.result|capitalize }}</span>
+    </td>
+    </tr>
+{% else %}
+    <tr>
+    <td colspan="4" class="empty">Não existem registos para apresentar.</td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>

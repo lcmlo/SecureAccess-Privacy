@@ -1,0 +1,20 @@
+﻿<header>
+    <form class="search" method="get" action="{{ url_for('admin.users') if current_user.role == 'admin' else url_for('user.history') }}">
+        {% if current_user.role == 'admin' %}
+            <label class="sr-only" for="search">Pesquisar utilizadores</label>
+            <input id="search" name="q" placeholder="Pesquisar utilizadores…" maxlength="64">
+        {% else %}
+            <label class="sr-only" for="search">Pesquisar eventos</label>
+            <select id="search" name="event_type">
+                <option value="">Pesquisar eventos…</option>
+                {% for key,label in events.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+            </select>
+        {% endif %}
+        <button class="secondary">Pesquisar</button>
+    </form>
+    <a class="profile" href="{{ url_for('admin.permissions') if current_user.role == 'admin' else url_for('user.data') }}">
+        <span class="avatar">{{ current_user.username[0]|upper }}</span>{{ current_user.username }}
+        <small>{{ 'Administrador' if current_user.role == 'admin' else 'Utilizador' }}</small>
+    </a>
+    <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="secondary">Sair</button></form>
+</header>
