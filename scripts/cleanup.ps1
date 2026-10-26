@@ -2,5 +2,5 @@
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
-& "$projectRoot\.venv\Scripts\python.exe" -m flask --app app cleanup
+& "$projectRoot\.venv\Scripts\python.exe" "$projectRoot\scripts\cleanup_logs.py"
 exit $LASTEXITCODE

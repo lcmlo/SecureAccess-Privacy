@@ -11,3 +11,4 @@ mfa.db
 *.bak
 .pytest_cache/
 artifacts/
+instance/

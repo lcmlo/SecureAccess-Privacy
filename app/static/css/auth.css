@@ -1,0 +1,28 @@
+/* Apresenta??o dos ecr?s p?blicos de autentica??o. */
+.public-brand {
+    justify-content:center;
+    margin:35px auto 10px;
+}
+.public main {
+    max-width:530px;
+    margin:0 auto;
+    padding:20px;
+}
+.auth-card {
+    padding:34px;
+}
+.auth-card button {
+    width:100%;
+    margin:15px 0;
+}
+.qr {
+    text-align:center;
+    margin:20px 0;
+}
+.qr img {
+    background:white;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+}
+@media (max-width:760px) { .auth-card { padding:24px; } .public-brand { margin-top:15px; } }

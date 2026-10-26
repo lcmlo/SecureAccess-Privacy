@@ -1,0 +1,13 @@
+/* Gestão de contas e processamento administrativo. */
+.admin-area .request-item form { max-width: 500px; }
+.admin-area td details { min-width: 230px; }
+.admin-area .reference { font-size: 11px; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .admin-area .request-item button { width: 100%; } }
+
+.request-item form {
+    max-width:500px;
+}
+.request-item {
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+}

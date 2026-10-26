@@ -1,0 +1,39 @@
+﻿<!doctype html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or 'Autenticação' }} · SecureAccess Privacy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block styles %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+{% macro identity() %}
+    <label>Palavra-passe atual
+        <input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+    </label>
+    <label>Código MFA atual
+        <input name="token" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+    </label>
+    <p class="hint">Cada código só pode ser usado uma vez. Aguarde pelo próximo código após iniciar sessão ou confirmar outra operação.</p>
+{% endmacro %}
+{% macro csrf() %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% endmacro %}
+{% block shell %}{% endblock %}
+<main id="main-content">
+    {% include 'components/alerts.html' %}
+    {% if title %}
+        <div class="page-heading">
+            <p class="eyebrow">{{ 'ADMINISTRAÇÃO E SEGURANÇA' if current_user.is_authenticated and current_user.role == 'admin' else 'O SEU ESPAÇO DE PRIVACIDADE' }}</p>
+            <h1>{{ title }}</h1>
+            <p>Segurança, transparência e controlo dos dados.</p>
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+    <footer>SecureAccess Privacy · Todos os horários são apresentados em UTC.</footer>
+</main>
+</body>
+</html>

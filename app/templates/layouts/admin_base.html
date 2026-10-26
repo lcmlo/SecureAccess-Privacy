@@ -1,0 +1,12 @@
+﻿{% extends 'layouts/base.html' %}
+{% block body_class %}authenticated admin-area{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>{% endblock %}
+{% block shell %}
+    <aside>
+        <a class="brand" href="{{ url_for('admin.dashboard') }}">{% include 'components/brand.html' %}</a>
+        {% include 'components/sidebar_admin.html' %}
+        <div class="sidebar-note">Administração de segurança<br><small>Projeto académico · SecureAccess</small></div>
+    </aside>
+    {% include 'components/navbar.html' %}
+{% endblock %}

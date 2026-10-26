@@ -1,0 +1,16 @@
+{% extends 'layouts/auth_base.html' %}
+{% block content %}
+    <section class="card auth-card">
+    <p class="eyebrow">BEM-VINDO AO SECUREACCESS</p>
+    <h1>Iniciar sessão</h1>
+    <p>Aceda ao seu espaço de segurança e privacidade.</p>
+    <form method="post">{{ csrf() }}<label>Nome de utilizador<input name="username" autocomplete="username" maxlength="64" required>
+    </label>
+    <label>Palavra-passe<input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+    </label>
+    <button>Entrar com segurança</button>
+    </form>
+    <p class="hint">Ainda não tem conta? <a href="{{ url_for('auth.register') }}">Criar conta</a>
+    </p>
+    </section>
+{% endblock %}

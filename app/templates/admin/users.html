@@ -1,0 +1,61 @@
+{% extends 'layouts/admin_base.html' %}
+{% block content %}
+    <section class="card">
+    <form class="filters" method="get">
+    <label>Pesquisar utilizadores<input name="q" value="{{ request.args.get('q','') }}" maxlength="64">
+    </label>
+    <label>Perfil<select name="role">
+    <option value="">Todos</option>
+    <option value="user" {{ 'selected' if request.args.get('role')=='user' }}>Utilizador</option>
+    <option value="admin" {{ 'selected' if request.args.get('role')=='admin' }}>Administrador</option>
+    </select>
+    </label>
+    <button>Pesquisar</button>
+    </form>
+    <p class="hint">São apresentadas até 200 contas. Restrinja a pesquisa se necessário. As contas são criadas através do registo público, sempre como utilizador.</p>
+    <div class="table-wrap">
+    <table>
+    <thead>
+    <tr>
+    <th>ID</th>
+    <th>Nome de utilizador</th>
+    <th>Perfil</th>
+    <th>MFA</th>
+    <th>Estado</th>
+    <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in users %}
+        <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.username }}</td>
+        <td>{{ row.role }}</td>
+        <td>{{ 'Ativa' if row.mfa_enabled else 'Inativa' }}</td>
+        <td>{{ 'Ativa' if row.active else 'Desativada' }}</td>
+        <td>
+        {% if row.id != current_user.id %}
+            <details>
+            <summary>Gerir conta</summary>
+            <form method="post" action="{{ url_for('admin.update_user', uid=row.id) }}">{{ csrf() }}<label>Operação<select name="action">
+            <option value="{{ 'deactivate' if row.active else 'activate' }}">{{ 'Desativar' if row.active else 'Reativar' }}</option>
+            <option value="{{ 'user' if row.role=='admin' else 'admin' }}">Atribuir perfil {{ 'user' if row.role=='admin' else 'admin' }}</option>
+            </select>
+            </label>{{ identity() }}<button>Aplicar alteração</button>
+            </form>
+            </details>
+        {% else %}
+            A sua conta
+        {% endif %}
+        </td>
+        </tr>
+    {% else %}
+        <tr>
+        <td colspan="6">Não foram encontradas contas.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+    </section>
+{% endblock %}

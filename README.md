@@ -1,154 +1,230 @@
-﻿# SecureAccess Privacy
+# SecureAccess Privacy
 
-Aplicação académica que evolui o SecureAccess, mantendo Flask, SQLite, Jinja, Werkzeug, Flask-Login, TOTP e cifra Fernet. Demonstra controlo sobre os próprios dados, minimização, pseudonimização e retenção limitada. Não constitui uma certificação de conformidade com o RGPD.
+Evolução académica do SecureAccess com autenticação multifator e funcionalidades de controlo dos dados pessoais. Demonstra minimização, pseudonimização, transparência, menor privilégio e retenção limitada. Não constitui uma declaração de conformidade integral com o RGPD.
 
-## Instalação e execução (Windows / PowerShell)
+## Arquitetura
 
-Requer Python 3.11 ou superior. Validado com Python 3.13.
+Monólito modular Flask com Application Factory, quatro Blueprints, Service Layer, modelos SQLAlchemy e migrações Flask-Migrate/Alembic. Frontend Jinja2, HTML5, CSS3 e JavaScript progressivo, sem frameworks frontend. SQLite continua a ser a base de dados.
+
+- `app/__init__.py`: única fábrica `create_app()`; configuração e registo das extensões/Blueprints.
+- `app/config.py`: configuração de desenvolvimento, teste e produção.
+- `app/extensions.py`: SQLAlchemy, Flask-Migrate, Flask-Login e CSRFProtect (Flask-WTF).
+- `app/models/`: User, AuditLog, DeletionRequest, DeletionHistory e AuthAttempt.
+- `app/routes/`: HTTP, validação/autorização, chamadas aos serviços e respostas.
+- `app/services/`: autenticação, MFA, auditoria, contas, exportação/eliminação e retenção.
+- `app/utils/`: RBAC, HMAC, adaptação de formulários e controlos HTTP comuns.
+- `app/templates/`: layouts e componentes partilhados, autenticação, seis ecrãs user, seis admin e erros.
+- `app/static/`: CSS e JavaScript por área, logótipo SVG.
+
+```text
+SecureAccess-Privacy/
+├── app/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── extensions.py
+│   ├── cli.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── audit_log.py
+│   │   ├── deletion_request.py
+│   │   └── auth_attempt.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── user.py
+│   │   ├── admin.py
+│   │   └── privacy.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── auth_service.py
+│   │   ├── mfa_service.py
+│   │   ├── audit_service.py
+│   │   ├── user_service.py
+│   │   ├── privacy_service.py
+│   │   └── retention_service.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── decorators.py
+│   │   ├── pseudonymization.py
+│   │   ├── forms.py
+│   │   └── web_security.py
+│   ├── templates/
+│   │   ├── layouts/       # base, auth_base, user_base, admin_base
+│   │   ├── components/    # sidebars, navbar, alerts, tabelas e cartões
+│   │   ├── auth/          # login, register, mfa_setup, mfa_verify
+│   │   ├── user/          # os seis ecrãs do utilizador
+│   │   ├── admin/         # os seis ecrãs administrativos
+│   │   └── errors/        # 403, 404, 500 e fallback
+│   └── static/
+│       ├── css/           # main, auth, user, admin
+│       ├── js/            # main, user, admin
+│       └── images/logo.svg
+├── instance/              # ignorada pelo Git
+│   ├── secureaccess.db
+│   └── backups/           # cópias legadas locais preservadas
+├── migrations/
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── schema_compat.py
+│   ├── script.py.mako
+│   └── versions/0001_privacy_baseline.py
+├── scripts/
+│   ├── configure.py
+│   ├── migrate_database.py
+│   ├── create_admin.py
+│   ├── cleanup_logs.py
+│   └── cleanup.ps1
+├── tests/                 # autenticação, MFA, permissões, privacidade,
+│                          # auditoria, eliminação, arquitetura e migrações
+├── docs/
+│   ├── mockups/
+│   └── implementation_report.md
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── requirements-dev.txt
+├── pytest.ini
+├── run.py
+└── README.md
+```
+
+Não existe uma segunda aplicação Flask nem diretórios legados `secureaccess/`, `templates/` ou `static/` na raiz. O ponto de entrada anterior `app.py` foi substituído por `run.py` e pelo pacote `app`.
+
+## Instalação e configuração
+
+Requer Python 3.11 ou superior; validado com Python 3.13 no Windows. Dependências: Flask, Flask-SQLAlchemy/SQLAlchemy, Flask-Migrate/Alembic, Flask-WTF, Flask-Login, Werkzeug, pyotp, cryptography, qrcode/Pillow e python-dotenv. Pytest e Ruff são dependências de desenvolvimento.
 
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe scripts/configure.py
-.\.venv\Scripts\python.exe -m flask --app app migrate --dry-run
-.\.venv\Scripts\python.exe -m flask --app app migrate
-.\.venv\Scripts\python.exe -m flask --app app run --host 127.0.0.1
 ```
 
-Abrir http://127.0.0.1:5000. O servidor de desenvolvimento escuta apenas no computador local. Não usar o servidor Flask em produção. O modo debug não é ativado por omissão.
-
-Em Linux/macOS: usar `python3 -m venv .venv` e `.venv/bin/python` nos comandos seguintes.
-
-## Configuração
-
-O script `scripts/configure.py` completa o `.env` local sem imprimir segredos e sem substituir a chave Fernet existente. Se a chave de sessão anterior tiver menos de 32 caracteres, substitui-a e invalida os cookies antigos. Nunca copiar `.env` para o controlo de versões.
+O configurador completa `.env` sem imprimir segredos e preserva a chave Fernet existente. Só substitui a chave de sessão se tiver menos de 32 caracteres, invalidando cookies antigos. Nunca versionar `.env`.
 
 | Variável | Finalidade |
 | --- | --- |
-| `FLASK_SECRET_KEY` | Chave aleatória para assinatura dos cookies; pelo menos 32 caracteres |
-| `MFA_ENC_KEY` | Chave Fernet válida; preservar a chave original para decifrar TOTP existentes |
-| `AUDIT_HMAC_KEY` | Chave aleatória independente para HMAC-SHA256; pelo menos 32 caracteres |
-| `MFA_DB_PATH` | Caminho da base SQLite; por omissão `mfa.db` na raiz |
-| `COOKIE_SECURE` | `0` apenas para HTTP local; definir `1` quando servido por HTTPS |
+| `FLASK_SECRET_KEY` | Chave aleatória de assinatura de sessão, mínimo 32 caracteres |
+| `MFA_ENC_KEY` | Chave Fernet; preservar para conseguir decifrar os segredos existentes |
+| `AUDIT_HMAC_KEY` | Chave aleatória independente para HMAC-SHA256, mínimo 32 caracteres |
+| `MFA_DB_PATH` | Caminho SQLite absoluto ou relativo à raiz; omissão `instance/secureaccess.db` |
+| `APP_ENV` | `development` (omissão), `testing` ou `production` |
+| `COOKIE_SECURE` | Opcional: `0` apenas em HTTP local, `1` em HTTPS; produção exige `1` |
 
-`.env.example` contém apenas os nomes das variáveis. Fora de desenvolvimento, fornecer segredos pelo ambiente e limitar permissões de acesso aos ficheiros. Não rodar a chave MFA sem recifrar os segredos; não rodar a chave HMAC sem um plano para os eventos ainda conservados.
+As configurações de produção ativam cookies Secure por omissão. Um override que os desative em produção é rejeitado. A aplicação não ativa debug automaticamente. Para HTTPS real usar um servidor WSGI e proxy configurados, sem expor o servidor de desenvolvimento.
 
-**Segredos históricos:** o repositório original incluía `.env`. Foi retirado do índice, mantendo a cópia local. A exclusão atual não remove versões anteriores do histórico Git. As chaves históricas devem ser consideradas expostas caso o repositório tenha sido partilhado. Uma rotação da chave MFA exige recifrar os dados, pelo que não é feita automaticamente.
+## Base de dados e migrações
 
-## Migração e base de dados
-
-O arranque não altera silenciosamente o esquema. Executar `migrate` explicitamente antes de servir pedidos. O comando `--dry-run` aplica a migração a uma cópia em memória. A aplicação definitiva cria primeiro um backup SQLite consistente, com data e hora no nome, e aplica alterações numa transação. A migração é repetível.
-
-Para evoluir uma base existente, definir `MFA_DB_PATH` para o respetivo ficheiro e manter a `MFA_ENC_KEY` original. Os IDs, nomes, hashes, segredos cifrados, estado MFA e datas são preservados. Não foi importada ou modificada a base de outro repositório.
-
-Novos campos de `users`: `role` (`user` por omissão; CHECK user/admin), `active`, `session_version` e `last_totp_step`. Estes suportam autorização, desativação, revogação e proteção contra repetição TOTP. As tabelas novas são `audit_logs`, `deletion_requests`, `deletion_history` e `auth_attempts`. As relações usam foreign keys e os comprovativos são desvinculados com `ON DELETE SET NULL`.
-
-As cópias `.bak` contêm dados e segredos cifrados anteriores: devem ter acesso restrito e um prazo operacional próprio. Não ficam publicamente acessíveis. Para este protótipo, eliminar os backups da migração depois de validar o resultado, antes de processar eliminações reais; não manter cópias esquecidas. A eliminação na aplicação não apaga backups externos.
-
-## Primeiro administrador e permissões
-
-1. Registar uma conta e concluir a configuração MFA.
-2. Num terminal local autorizado, executar:
+**Base nova:**
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask --app app promote-admin NOME_DO_UTILIZADOR
+.\.venv\Scripts\python.exe -m flask --app run db upgrade
 ```
 
-3. Autenticar novamente: a promoção revoga as sessões anteriores.
+**Importar uma base anterior:** parar o servidor antigo e executar, mantendo a chave MFA e a chave HMAC anteriores:
 
-O registo público ignora qualquer perfil enviado e atribui sempre `user`. A promoção pela CLI exige conta ativa com MFA e fica auditada. Não existe palavra-passe de administrador predefinida.
+```powershell
+.\.venv\Scripts\python.exe scripts/migrate_database.py --source CAMINHO_DA_BASE_ANTIGA --dry-run
+.\.venv\Scripts\python.exe scripts/migrate_database.py --source CAMINHO_DA_BASE_ANTIGA
+```
 
-O utilizador consulta apenas os próprios dados. O administrador pode pesquisar contas, desativar/reativar, atribuir perfis, consultar logs pseudonimizados e processar pedidos. Estas operações exigem palavra-passe e um código MFA novo. Não pode alterar o próprio perfil ou estado, tratar o próprio pedido ou remover o último administrador ativo. O backend verifica o perfil em todas as rotas administrativas.
+O script copia SQLite de forma consistente para `instance/secureaccess.db`, verifica a integridade e executa Alembic. A simulação usa uma cópia temporária e não altera a origem. Um destino existente nunca é substituído silenciosamente. A origem e os backups são preservados. O script atualiza apenas `MFA_DB_PATH` no `.env`, sem substituir chaves. Se `MFA_DB_PATH` estiver definido no ambiente do processo, atualizar também essa variável para o novo caminho.
 
-Os menus têm seis secções distintas por perfil. Um administrador também mantém os seus direitos pessoais através de `/my-data`, `/history`, `/privacy`, `/export` e `/deletion`, sem inserir essas secções no menu administrativo.
+A revisão `0001_privacy` suporta uma base vazia, o esquema SecureAccess original e a versão Privacy anterior. Adiciona os campos/tabelas/índices em falta sem recriar os utilizadores. Mantém os IDs, usernames, hashes, segredos cifrados, datas, eventos e pedidos. `role` tem valor inicial `user` e restrição user/admin. Os campos de segurança `active`, `session_version` e `last_totp_step` são preservados.
 
-## Funcionalidades
+Antes de executar Alembic sobre um ficheiro existente, `migrations/env.py` cria um backup `.pre-alembic.bak`. As alterações e a revisão Alembic são gravadas numa transação SQLite. Não se utiliza `db.create_all()`. As datas mantêm a representação UTC textual compatível com os dados legados; a comparação automática de tipos está desativada para não converter o TIMESTAMP SQLite antigo desnecessariamente. O comparador `schema_compat.py` confirma no PRAGMA as ações das FKs inline legadas e normaliza a reflexão dos ROWIDs; não elimina diferenças reais de regras. Rever sempre as migrações geradas.
 
-- Registo, login, configuração MFA, TOTP e logout por POST.
-- Dashboard do utilizador com MFA, último login conservado, privacidade e consulta dos dados.
-- Histórico próprio e logs administrativos com filtros por data, evento e resultado; 100 registos por página.
-- Centro de Privacidade com categorias e prazos correspondentes ao código.
-- Exportação seletiva em JSON ou CSV de dados da conta, atividade e pedidos. Os CSV usam linhas `categoria,registo,campo,valor`. Neutralizam-se valores com prefixos de fórmulas.
-- Exportação em memória, sem ficheiros públicos ou acesso por ID de terceiros. Exclui hashes, segredos, códigos, contadores e identificadores de sessão. Confirmação com palavra-passe e MFA.
-- Pedidos de eliminação únicos em aberto: `pendente` → `em processamento` → `concluído`.
-- A conclusão elimina a conta, hash, segredo, eventos e contadores associados à identidade, na mesma transação. O comprovativo e as três transições ficam sem ligação à conta. A sessão deixa de ser válida.
-- Pesquisa administrativa por nome e perfil, até 200 contas; até 200 pedidos recentes.
-- Indicadores administrativos reais: contas ativas, falhas nas últimas 24 horas, pedidos pendentes e contas com MFA. Não existe um sistema de alertas: o quarto cartão mostra cobertura MFA.
-- Matriz de permissões, consulta de políticas e execução da limpeza.
+```powershell
+.\.venv\Scripts\python.exe -m flask --app run db current
+.\.venv\Scripts\python.exe -m flask --app run db check
+# Apenas quando o modelo mudar, rever o ficheiro gerado antes de aplicar:
+.\.venv\Scripts\python.exe -m flask --app run db migrate -m "descricao da alteracao"
+.\.venv\Scripts\python.exe -m flask --app run db upgrade
+```
 
-## Segurança e proteção de dados
+A migração inicial de adoção não oferece downgrade destrutivo: para regressar ao esquema antigo, parar o servidor e restaurar o backup com o código do checkpoint correspondente. A base local anterior foi arquivada em `instance/backups/mfa.db.legacy.bak` e o seu backup original foi conservado. Novas instalações não têm estes ficheiros.
 
-Novas palavras-passe: 12 a 128 caracteres, hash scrypt do Werkzeug; hashes antigos continuam válidos. Segredos TOTP cifrados com Fernet. QR Code em memória, mostrado apenas na ativação pendente. Cada intervalo TOTP só é aceite uma vez, com atualização condicional atómica; não se guardam códigos. Depois de iniciar sessão, aguardar pelo próximo código antes de exportar ou confirmar outra operação.
+## Execução e administrador
 
-Autenticação pendente válida durante cinco minutos. Sessões assinadas HttpOnly, SameSite=Lax, duração absoluta de 30 minutos. A versão de sessão guardada na base revoga sessões e autenticações pendentes após alterações administrativas. Logout limpa o cookie; uma cópia previamente roubada do cookie só deixa de funcionar com expiração ou revogação administrativa. Não existe armazenamento de sessões em servidor.
+```powershell
+.\.venv\Scripts\python.exe run.py
+```
 
-Todas as operações POST validam CSRF. Queries parametrizadas, validação de entrada, limites de tamanho, autoescape Jinja, CSP sem scripts, proteção contra framing, `no-store` e `no-referrer`. Em HTTPS aplica-se HSTS. Os erros apresentados não incluem stacks nem segredos.
+Abrir http://127.0.0.1:5000. Alternativa: `python -m flask --app run run --host 127.0.0.1`.
 
-Cinco tentativas por identidade e por origem em cada janela de 15 minutos para login/MFA/confirmação/registo. Contadores persistentes SQLite guardam apenas HMAC e expiração. O IP não é guardado em bruto nem mostrado. Não se confia no cabeçalho `X-Forwarded-For`; atrás de proxy é necessário configurar uma origem de confiança de forma explícita. O limite partilhado por origem pode afetar utilizadores na mesma rede.
+O registo atribui sempre `user`, mesmo quando o pedido tenta enviar `role=admin`. Para o primeiro administrador, registar uma conta, concluir a MFA e executar num terminal autorizado:
 
-Eventos técnicos contêm apenas referência HMAC-SHA256, evento, timestamp e resultado. A associação é calculada no servidor com chave independente e o ID da conta. As referências são dados pessoais pseudonimizados, não dados anónimos. Não há endpoints para editar logs. Quem tem acesso direto à base/host continua a poder alterar dados: usar permissões do sistema e controlo de acesso ao ambiente.
+```powershell
+.\.venv\Scripts\python.exe scripts/create_admin.py NOME_DO_UTILIZADOR
+# Comando CLI equivalente:
+.\.venv\Scripts\python.exe -m flask --app run promote-admin NOME_DO_UTILIZADOR
+```
 
-## Retenção e limpeza
+Autenticar novamente após a promoção. Não existem contas ou palavras-passe administrativas predefinidas. O script promove uma conta existente ativa com MFA; não contorna a configuração do segundo fator.
 
-| Categoria | Prazo / regra |
+## Funcionalidades e perfis
+
+O menu **user** contém exatamente Dashboard, Os meus dados, Histórico de acessos, Centro de Privacidade, Exportação de dados e Pedido de eliminação. Apresenta informação real da própria conta. O histórico tem filtros e paginação de 100 registos. A exportação seleciona conta, atividade e/ou pedidos, em JSON ou CSV, gerados em memória. O CSV usa linhas `categoria,registo,campo,valor` e neutraliza prefixos de fórmulas.
+
+O menu **admin** contém exatamente Dashboard, Utilizadores, Logs de autenticação, Pedidos de eliminação, Perfis e permissões e Definições. Permite pesquisar contas, desativar/reativar, atribuir perfis, consultar logs pseudonimizados, processar pedidos e executar limpeza. As consultas administrativas apresentam até 200 contas/pedidos, com pesquisa de contas por nome/perfil. O quarto indicador mostra contas com MFA, pois não existe mecanismo de alertas.
+
+Os perfis são verificados no backend em todas as rotas administrativas. Um administrador não pode alterar o próprio perfil/estado, processar o próprio pedido ou remover o último administrador ativo. Mantém os direitos pessoais em `/my-data`, `/history`, `/privacy`, `/export` e `/deletion`, sempre com o layout administrativo. Não se misturam menus.
+
+Pedidos: `pendente` → `em processamento` → `concluído`. A conclusão elimina a conta, credenciais, eventos associados e contadores ligados à identidade na mesma transação. O comprovativo perde a ligação à conta; a sua história mínima é conservada temporariamente. Não se concluem pedidos sem executar a eliminação.
+
+## Segurança e Privacy by Design
+
+- Novas palavras-passe: 12 a 128 caracteres, hash scrypt; os hashes antigos continuam válidos.
+- MFA TOTP obrigatória, com Fernet, QR em memória e proteção atómica contra reutilização do intervalo.
+- Sessão autenticada: 30 minutos; autenticação pendente: cinco minutos. A versão na base permite revogar sessões e autenticações pendentes após alterações administrativas.
+- Cookies HttpOnly e SameSite=Lax; Secure em HTTPS; HSTS em pedidos HTTPS.
+- Flask-WTF valida CSRF assinado em todos os POST, inclusive autenticação e logout.
+- SQLAlchemy parametriza consultas. Validação no servidor, autoescape Jinja, CSP só com scripts locais, proteção contra framing, `no-store` e `no-referrer`.
+- Cinco tentativas por identidade/origem a cada 15 minutos; contadores SQLite HMAC persistem entre processos/reinícios. Não se guardam IPs em bruto nem se confia em `X-Forwarded-For` arbitrário.
+- Exportações e operações sensíveis exigem palavra-passe e um código MFA ainda não usado. Depois de iniciar sessão, aguardar pelo próximo código.
+- Exportação por lista positiva: exclui hashes, segredos, chaves, tokens, sessões e contadores internos. O titular é sempre selecionado pela identidade autenticada.
+- Auditoria contém apenas referência HMAC, evento, data e resultado. As referências são dados pessoais pseudonimizados, não dados anónimos. Não há endpoints para editar logs.
+- Sem morada, telefone, email, localização ou histórico de dispositivos. Não se armazenam palavras-passe originais, códigos TOTP ou QR Codes.
+
+## Retenção e agendamento
+
+| Categoria | Prazo |
 | --- | --- |
 | Conta e autenticação | Até à conclusão da eliminação |
-| Auditoria | 90 dias; eventos associados removidos antecipadamente na eliminação |
-| Pedidos abertos | Até ao tratamento |
-| Comprovativos concluídos desvinculados | 90 dias após conclusão |
-| Contadores temporários | Janela de 15 minutos; limpeza na próxima execução |
-| Cookie autenticado / pendente | 30 / 5 minutos |
+| Eventos de auditoria | 90 dias; removidos antecipadamente quando a conta é eliminada |
+| Pedidos em aberto | Até ao tratamento |
+| Comprovativos concluídos sem ligação à conta | 90 dias após conclusão |
+| Contadores temporários | Janela de 15 minutos; remoção na limpeza seguinte |
 
-Os 90 dias são uma decisão documentada deste protótipo para permitir análise de incidentes e demonstrar o ciclo de vida, reduzindo a conservação indefinida. **Não são um prazo universal imposto pelo RGPD.** O projeto não implementa conservação especial, bloqueios legais ou arquivo por obrigação legal: não deve tratar dados sujeitos a essas regras sem adaptação.
+Os 90 dias são uma decisão do protótipo para permitir análise de incidentes e demonstrar conservação limitada; não um prazo universal imposto pelo RGPD. Não existe mecanismo de conservação legal especial ou bloqueio por litígio.
 
-A limpeza é idempotente, executada em cada pedido não estático e disponível pela CLI:
+A limpeza é idempotente e executa-se em pedidos HTTP não estáticos. Para correr sem tráfego:
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask --app app cleanup
+.\.venv\Scripts\python.exe scripts/cleanup_logs.py
+# Alternativa:
+.\.venv\Scripts\python.exe -m flask --app run cleanup
 ```
 
-Para funcionar mesmo sem tráfego, configurar no Agendador de Tarefas do Windows uma tarefa diária às 03:00, com a conta de serviço autorizada, e a ação:
+Configurar no Agendador de Tarefas do Windows uma tarefa diária às 03:00, com o executável absoluto `.venv\Scripts\python.exe` e o argumento absoluto `scripts\cleanup_logs.py`. O script não depende do diretório de trabalho. Alternativamente usar `powershell.exe -NoProfile -File "CAMINHO\scripts\cleanup.ps1"`. Ativar execução após uma hora agendada perdida e verificar o código de saída. A tarefa não é instalada automaticamente. Em Linux, agendar o mesmo script por cron/systemd.
 
-- Programa: `powershell.exe`
-- Argumentos: `-NoProfile -File "C:\CAMINHO\SecureAccess-Privacy\scripts\cleanup.ps1"`
-- Ativar execução assim que possível se a hora agendada for perdida.
+Backups contêm dados históricos e segredos cifrados. Restringir permissões e definir conservação operacional: depois de validar uma migração, eliminar backups dispensáveis antes de tratar eliminações reais. A aplicação não apaga backups, snapshots ou histórico Git. `secure_delete` reduz resíduos nas páginas SQLite, sem garantir apagamento físico em SSD.
 
-O script fixa o diretório do projeto e devolve o código de saída. Confirmar o resultado na tarefa e na saída CLI. A tarefa do sistema não é instalada automaticamente; até ser configurada, a limpeza sem tráfego exige executar o comando manualmente. Em Linux, agendar o mesmo comando diariamente por cron/systemd.
-
-## Testes
+## Testes e qualidade
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\ruff.exe check app scripts tests run.py migrations
+.\.venv\Scripts\python.exe -m pip check
 ```
 
-Os testes usam bases temporárias e chaves efémeras, nunca a base local. Cobrem registo, MFA, repetição, login, logout, expiração, CSRF, limites, RBAC, isolamento de contas, exports, auditoria, retenção, transições/eliminação, revogação e preservação de credenciais na migração. Consulte `IMPLEMENTATION_REPORT.md` para os resultados da execução.
-
-## Estrutura
-
-```text
-app.py                    Entrada compatível com Flask CLI
-secureaccess/
-  __init__.py             Fábrica e configuração
-  db.py                   SQLite, migração e comandos de manutenção
-  security.py             CSRF, RBAC, auditoria, HMAC, limitação, cabeçalhos
-  auth.py                 Login, registo, sessões e MFA
-  privacy.py              Direitos pessoais, filtros e exportação
-  admin.py                Contas, pedidos e definições
-scripts/
-  configure.py            Preparação segura de .env
-  cleanup.ps1             Execução agendável no Windows
-templates/                Interfaces PT-PT e componentes Jinja
-static/                   CSS responsivo e logótipo SVG
-tests/                    Testes pytest
-docs/mockups/             Referências visuais fornecidas
-```
-
-## Demonstração
-
-Registar duas contas e associá-las a uma aplicação TOTP. Promover uma delas pela CLI. Na conta user, visitar as seis secções, exportar JSON/CSV e apresentar pedido de eliminação. Na conta admin, consultar indicadores/logs, pesquisar contas, iniciar processamento e concluir a eliminação. Confirmar que a conta eliminada perde o acesso e que fica apenas o comprovativo desvinculado. Utilizar contas descartáveis de demonstração.
+Validação final: **60 testes aprovados**, Ruff sem erros, formatação validada, dependências sem conflitos e Alembic sem diferenças pendentes. Os testes usam chaves efémeras e bases temporárias criadas por Alembic. Validam os 12 ecrãs, layouts e menus, login/MFA, sessões, CSRF, limites, RBAC/IDOR, auditoria, exportação, eliminação transacional, rollback, retenção, migração legada e scripts de simulação. Resultados detalhados em [docs/implementation_report.md](docs/implementation_report.md).
 
 ## Limitações
 
-Sem recuperação de conta, códigos de recuperação, substituição de autenticador ou alteração de palavra-passe/perfil pessoal. Sem exportação administrativa, alertas automáticos ou configuração de prazos pela interface. Sem mecanismo de retenção legal ou logs invioláveis. SQLite e contadores por origem destinam-se a um protótipo de pequena escala. A eliminação lógica e `secure_delete` não garantem apagamento físico de SSD, cópias, snapshots ou histórico Git. É necessária uma política de backups e operação segura fora da aplicação. A inspeção visual em navegador e dispositivos reais não substitui testes de acessibilidade e compatibilidade completos.
+Sem recuperação/substituição/desativação de MFA, alteração de palavra-passe ou edição do perfil pessoal. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão. A aprovação visual em navegadores/dispositivos reais não está concluída; a renderização foi validada em testes HTTP/Jinja.
 
-Referências técnicas: [segurança no Flask](https://flask.palletsprojects.com/en/stable/web-security/) e [autenticação na OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html).
+O `.env` original foi retirado do controlo de versões no checkpoint, mas pode existir no histórico anterior. Se houve exposição, a rotação da chave MFA exige recifrar os dados; a chave HMAC exige um plano para logs existentes. Não houve reescrita do histórico nem substituição automática dessas chaves.
+
+Referências técnicas: [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/stable/quickstart/), [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/) e [CSRF no Flask-WTF](https://flask-wtf.readthedocs.io/en/1.2.x/csrf/).

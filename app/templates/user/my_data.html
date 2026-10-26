@@ -1,0 +1,31 @@
+{% extends 'layouts/admin_base.html' if current_user.role == 'admin' else 'layouts/user_base.html' %}
+{% block content %}
+    <section class="card">
+    <h2>Informações da conta</h2>
+    <dl>
+    <dt>Nome de utilizador</dt>
+    <dd>{{ account.username }}</dd>
+    <dt>Identificador da conta</dt>
+    <dd>{{ account.id }}</dd>
+    <dt>Perfil de acesso</dt>
+    <dd>{{ 'Administrador' if account.role == 'admin' else 'Utilizador' }}</dd>
+    <dt>Autenticação multifator</dt>
+    <dd>
+    <span class="badge ok">{{ 'Ativa' if account.mfa_enabled else 'Inativa' }}</span>
+    </dd>
+    <dt>Data de criação (UTC)</dt>
+    <dd>{{ account.created_at }}</dd>
+    <dt>Estado da conta</dt>
+    <dd>{{ 'Ativa' if account.active else 'Desativada' }}</dd>
+    </dl>
+    <div class="actions">
+    <a class="button" href="{{ url_for('privacy.export') }}">Exportar os meus dados</a>
+    <a class="button secondary" href="{{ url_for('user.data') }}#mfa">Gerir MFA</a>
+    </div>
+    </section>
+    <section id="mfa" class="card">
+    <h2>Gestão da MFA</h2>
+    <p>A MFA é obrigatória e foi configurada no primeiro acesso. Não é permitida a sua desativação neste protótipo. A substituição do autenticador e a recuperação da conta ainda não estão disponíveis.</p>
+    <p class="hint">O perfil e o nome de utilizador não são editáveis nesta página.</p>
+    </section>
+{% endblock %}

@@ -1,0 +1,2 @@
+﻿{% extends 'errors/generic.html' %}
+{% block content %}<section class="card"><h1>403 · Acesso não autorizado</h1><p>Não tem permissão para aceder a esta funcionalidade.</p><a href="{{ url_for('auth.index') }}">Voltar ao início</a></section>{% endblock %}

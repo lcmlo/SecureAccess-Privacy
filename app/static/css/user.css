@@ -1,0 +1,5 @@
+﻿/* Apresentação dos dados pessoais e formulários dos direitos do titular. */
+.user-area .narrow { max-width: 800px; }
+.user-area #mfa { scroll-margin-top: 24px; }
+.user-area .check { font-weight: 500; }
+@media (max-width: 760px) { .user-area .actions .button { width: 100%; } }
