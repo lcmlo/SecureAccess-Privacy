@@ -147,11 +147,17 @@ A migração inicial de adoção não oferece downgrade destrutivo: para regress
 
 ## Execução e administrador
 
+O `run.py` inicia o servidor de desenvolvimento Flask sem modo debug e escuta em `0.0.0.0:5000`, o que permite aceder à aplicação a partir de outros dispositivos da mesma rede local.
+
 ```powershell
 .\.venv\Scripts\python.exe run.py
 ```
 
-Abrir http://127.0.0.1:5000. Alternativa: `python -m flask --app run run --host 127.0.0.1`.
+- **No computador que executa a aplicação:** abrir http://127.0.0.1:5000.
+- **Noutro dispositivo da mesma rede local:** abrir `http://IP_DO_SERVIDOR:5000`, substituindo `IP_DO_SERVIDOR` pelo endereço IPv4 do computador que executa a aplicação. No Windows, consultar o endereço através de `ipconfig`.
+- **Alternativa com a CLI do Flask:** `.\.venv\Scripts\python.exe -m flask --app run run --host 0.0.0.0 --port 5000`.
+
+O endereço `0.0.0.0` serve para escutar nas interfaces de rede; **não** é o endereço a introduzir no navegador de outro dispositivo. O acesso pode exigir uma regra de firewall que permita a porta 5000 na rede privada. Esta configuração destina-se apenas a testes numa rede local de confiança: não expor o servidor de desenvolvimento Flask diretamente à Internet. Para uma disponibilização pública, utilizar servidor WSGI, HTTPS e proxy configurados.
 
 O registo atribui sempre `user`, mesmo quando o pedido tenta enviar `role=admin`. Para o primeiro administrador, registar uma conta, concluir a MFA e executar num terminal autorizado:
 
