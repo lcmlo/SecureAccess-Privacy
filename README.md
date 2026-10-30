@@ -1,6 +1,6 @@
 # SecureAccess Privacy
 
-Evolução académica do SecureAccess com autenticação multifator e funcionalidades de controlo dos dados pessoais. Demonstra minimização, pseudonimização, transparência, menor privilégio e retenção limitada. Não constitui uma declaração de conformidade integral com o RGPD.
+Evolução académica do [SecureAccess](https://github.com/lcmlo/SecureAccess) com autenticação multifator e funcionalidades de controlo dos dados pessoais. Demonstra minimização, pseudonimização, transparência, menor privilégio e retenção limitada. Não constitui uma declaração de conformidade integral com o RGPD.
 
 ## Arquitetura
 
