@@ -191,7 +191,7 @@ Pedidos: `pendente` → `em processamento` → `concluído`. A conclusão elimin
 - Exportações e operações sensíveis exigem palavra-passe e um código MFA ainda não usado. Depois de iniciar sessão, aguardar pelo próximo código.
 - Exportação por lista positiva: exclui hashes, segredos, chaves, tokens, sessões e contadores internos. O titular é sempre selecionado pela identidade autenticada.
 - Auditoria contém apenas referência HMAC, evento, data e resultado. As referências são dados pessoais pseudonimizados, não dados anónimos. Não há endpoints para editar logs.
-- Sem morada, telefone, email, localização ou histórico de dispositivos. Não se armazenam palavras-passe originais, códigos TOTP ou QR Codes.
+- Sem telefone, localização ou histórico de dispositivos. Não se armazenam palavras-passe originais, códigos TOTP ou QR Codes.
 
 ## Retenção e agendamento
 
@@ -229,7 +229,7 @@ Validação final: **60 testes aprovados**, Ruff sem erros, formatação validad
 
 ## Limitações
 
-Sem recuperação/substituição/desativação de MFA, alteração de palavra-passe ou edição do perfil pessoal. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão. A aprovação visual em navegadores/dispositivos reais não está concluída; a renderização foi validada em testes HTTP/Jinja.
+Sem recuperação/substituição/desativação de MFA, alteração de palavra-passe ou edição do perfil pessoal. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão.
 
 O `.env` original foi retirado do controlo de versões no checkpoint, mas pode existir no histórico anterior. Se houve exposição, a rotação da chave MFA exige recifrar os dados; a chave HMAC exige um plano para logs existentes. Não houve reescrita do histórico nem substituição automática dessas chaves.
 
