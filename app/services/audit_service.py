@@ -8,6 +8,7 @@ from app.models import AuditLog
 from app.utils.pseudonymization import user_ref
 
 EVENTS = {
+    "dados_pessoais_alterados": "Dados pessoais alterados",
     "registo": "Registo da conta",
     "login": "Login",
     "mfa_falha": "Falha na MFA",

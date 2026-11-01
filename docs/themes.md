@@ -1,0 +1,17 @@
+# Temas visuais
+
+O seletor na navbar de User e Admin permite escolher Claro, Escuro ou Automático. Também está disponível no topo dos ecrãs de autenticação. Os ícones sun, moon e monitor são SVG locais no estilo Lucide, sem dependências de CDN. A opção atual tem uma marca e `aria-checked`; o ícone e o nome acessível do botão acompanham a escolha.
+
+`app/static/js/theme.js` é carregado de forma síncrona no `<head>`, antes dos estilos. Valida a preferência e define `data-theme="light"` ou `data-theme="dark"` no elemento HTML antes de apresentar a interface. Usa apenas um script local, compatível com a CSP existente, sem scripts inline nem alterações ao backend.
+
+A chave `secureaccess-theme` no localStorage contém exclusivamente `light`, `dark` ou `system`. A omissão é `system`. A preferência mantém-se ao atualizar, navegar, terminar sessão ou voltar a abrir o navegador. É uma preferência deste navegador, partilhada entre contas no mesmo dispositivo, não um atributo da conta na base de dados. Não contém dados pessoais ou segredos.
+
+Automático resolve a aparência por `prefers-color-scheme` e reage às alterações do sistema. Claro e Escuro prevalecem sobre o sistema. Eventos de armazenamento sincronizam separadores. Quando o armazenamento está bloqueado, a escolha continua a funcionar na página, sem persistência; uma página nova volta a Automático.
+
+As paletas ficam centralizadas em `:root` e `[data-theme="dark"]` em `main.css`. Os mesmos componentes usam variáveis para superfícies, texto, bordas, inputs, tabelas, links, botões, avatares, estados e foco. Não existem folhas de estilos duplicadas por tema. Os formulários têm placeholders, cursor, autofill e controlos nativos adaptados através das variáveis e `color-scheme`. O código QR mantém um fundo branco de propósito para preservar a leitura pelo autenticador.
+
+O menu usa botões com `type="button"`, nomes acessíveis, `aria-expanded`, `aria-controls` e `menuitemradio`. Pode ser aberto com Enter/Espaço ou setas; permite navegar com setas, Home e End, escolher com Enter/Espaço e fechar com Escape, Tab ou clique exterior. Escape devolve o foco ao botão. Não há animações de mudança de tema; `prefers-reduced-motion` mantém o scroll sem animação. O seletor permanece acessível em telemóvel junto da fotografia, username e botão Sair.
+
+Ficheiros da implementação: `app/static/js/theme.js`, `app/static/css/main.css`, `app/static/css/auth.css`, `app/templates/components/theme_picker.html`, `app/templates/components/navbar.html`, `app/templates/layouts/base.html`, `app/templates/layouts/auth_base.html`, `README.md` e este documento. Não são necessárias migrações nem alterações à autenticação, MFA, sessões ou permissões.
+
+Validação funcional: 110 testes automatizados da aplicação aprovados. A verificação em Chrome headless cobre os 12 ecrãs User/Admin, Editar dados, login, registo e as duas etapas MFA, além dos cenários de avatar sem imagem/com imagem inválida, em Claro e Escuro, a 1920x1080, 1366x768, 768x1024 e 390x844: 152 combinações aprovadas. Verifica mudança imediata, persistência ao atualizar/navegar/ir para login, leitura da preferência antes dos estilos, modo automático com alterações do sistema, prioridade da escolha manual, teclado, armazenamento bloqueado, limites do menu e ausência de overflow horizontal. Uma instância Flask temporária verifica também o logout real e a preservação do modo escuro no login, usando os scripts externos e a CSP reais. Os artefactos locais de verificação estão em `artifacts/layout-check/`.

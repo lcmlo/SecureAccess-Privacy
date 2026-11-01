@@ -16,10 +16,14 @@ def index():
 def register():
     if request.method == "POST":
         try:
+            confirmation = request.form.get("password_confirmation", "")
+            if not confirmation or confirmation != request.form.get("password", ""):
+                raise BadRequest("A confirmação da palavra-passe não coincide.")
             auth_service.register(
                 request.form.get("username", ""),
                 request.form.get("password", ""),
                 request.remote_addr,
+                email=request.form.get("email", ""),
             )
         except BadRequest as error:
             flash(error.description)

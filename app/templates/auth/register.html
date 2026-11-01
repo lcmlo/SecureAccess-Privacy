@@ -3,13 +3,15 @@
     <section class="card auth-card">
     <p class="eyebrow">COMECE EM SEGURANÇA</p>
     <h1>Criar conta</h1>
-    <p>Recolhemos apenas os dados necessários à autenticação.</p>
-    <form method="post">{{ csrf() }}<label>Nome de utilizador<input name="username" autocomplete="username" minlength="3" maxlength="64" required>
+    <p>Crie a sua conta. Pode completar os dados pessoais posteriormente em «Os meus dados».</p>
+    <form method="post">{{ csrf() }}<label>Nome de utilizador<input name="username" value="{{ request.form.get('username', '') }}" autocomplete="username" pattern="[\p{L}\p{N}_\.\-]{3,64}" minlength="3" maxlength="64" required>
     </label>
     <p class="hint">Entre 3 e 64 caracteres: letras, números, ponto, hífen ou sublinhado.</p>
-    <label>Palavra-passe<input type="password" name="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+    <label>Email<input type="email" name="email" value="{{ request.form.get('email', '') }}" autocomplete="email" maxlength="254" required></label>
+    <label>Palavra-passe<input type="password" name="password" autocomplete="new-password" minlength="12" maxlength="128" data-password-toggle required>
     </label>
     <p class="hint">Entre 12 e 128 caracteres. A configuração de MFA é obrigatória no primeiro acesso.</p>
+    <label>Confirmar palavra-passe<input type="password" name="password_confirmation" autocomplete="new-password" minlength="12" maxlength="128" required></label>
     <button>Criar conta</button>
     </form>
     <p>

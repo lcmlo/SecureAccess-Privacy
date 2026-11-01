@@ -42,7 +42,8 @@ def test_migration_preserves_original_schema_and_credentials(app, tmp_path):
     )
     assert check_password_hash(row["password_hash"], PASSWORD)
     assert app.extensions["fernet"].decrypt(row["totp_secret"].encode()) == secret.encode()
-    assert conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0001_privacy"
+    assert conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0004_birth_date"
+    assert conn.execute("SELECT user_id FROM user_profiles").fetchone()[0] == row["id"]
     with pytest.raises(sqlite3.IntegrityError):
         conn.execute("UPDATE users SET role='auditor'")
     conn.close()

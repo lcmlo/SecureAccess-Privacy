@@ -1,3 +1,4 @@
+import base64
 import csv
 import io
 import json
@@ -25,6 +26,8 @@ def export_data(uid, categories, fmt):
     payload = {}
     if "account" in categories:
         payload["account"] = user.public_data()
+        if user.profile and user.profile.photo:
+            payload["account"]["photo_jpeg_base64"] = base64.b64encode(user.profile.photo).decode("ascii")
     if "history" in categories:
         logs = db.session.scalars(
             db.select(AuditLog).where(AuditLog.user_ref == user_ref(uid)).order_by(AuditLog.id)

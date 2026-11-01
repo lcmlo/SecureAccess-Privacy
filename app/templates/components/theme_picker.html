@@ -1,0 +1,21 @@
+<div class="theme-picker" data-theme-picker hidden>
+    <svg class="theme-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <symbol id="theme-icon-sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>
+        </symbol>
+        <symbol id="theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+        <symbol id="theme-icon-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></symbol>
+    </svg>
+    <button type="button" class="secondary theme-toggle" data-theme-toggle aria-label="Escolher tema" aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu">
+        <svg class="theme-icon" aria-hidden="true"><use data-theme-icon href="#theme-icon-monitor"/></svg>
+    </button>
+    <div class="theme-menu" id="theme-menu" role="menu" aria-label="Tema da aplicação" data-theme-menu hidden>
+        {% for value, label, icon in [('light', 'Claro', 'sun'), ('dark', 'Escuro', 'moon'), ('system', 'Automático', 'monitor')] %}
+            <button type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-theme-choice="{{ value }}">
+                <svg class="theme-icon" aria-hidden="true"><use href="#theme-icon-{{ icon }}"/></svg>
+                <span>{{ label }}</span><span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+        {% endfor %}
+    </div>
+</div>

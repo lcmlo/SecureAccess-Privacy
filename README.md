@@ -191,7 +191,7 @@ Pedidos: `pendente` → `em processamento` → `concluído`. A conclusão elimin
 - Exportações e operações sensíveis exigem palavra-passe e um código MFA ainda não usado. Depois de iniciar sessão, aguardar pelo próximo código.
 - Exportação por lista positiva: exclui hashes, segredos, chaves, tokens, sessões e contadores internos. O titular é sempre selecionado pela identidade autenticada.
 - Auditoria contém apenas referência HMAC, evento, data e resultado. As referências são dados pessoais pseudonimizados, não dados anónimos. Não há endpoints para editar logs.
-- Sem telefone, localização ou histórico de dispositivos. Não se armazenam palavras-passe originais, códigos TOTP ou QR Codes.
+- Sem telefone, localização ou histórico de dispositivos. Os dados pessoais adicionais do perfil são facultativos e destinados à demonstração académica com dados fictícios. Não se armazenam palavras-passe originais, códigos TOTP ou QR Codes.
 
 ## Retenção e agendamento
 
@@ -225,11 +225,21 @@ Backups contêm dados históricos e segredos cifrados. Restringir permissões e 
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-Validação final: **60 testes aprovados**, Ruff sem erros, formatação validada, dependências sem conflitos e Alembic sem diferenças pendentes. Os testes usam chaves efémeras e bases temporárias criadas por Alembic. Validam os 12 ecrãs, layouts e menus, login/MFA, sessões, CSRF, limites, RBAC/IDOR, auditoria, exportação, eliminação transacional, rollback, retenção, migração legada e scripts de simulação. Resultados detalhados em [docs/implementation_report.md](docs/implementation_report.md).
+Os testes usam chaves efémeras e bases temporárias criadas por Alembic. Validam os ecrãs, layouts e menus, login/MFA, sessões, CSRF, limites, RBAC/IDOR, auditoria, exportação, eliminação transacional, rollback, retenção, migração legada, scripts de simulação e perfis pessoais.
+
+## Perfis pessoais
+
+O registo solicita username, email, palavra-passe e confirmação da palavra-passe, mantendo o fluxo MFA. Username e email são únicos sem distinção de maiúsculas/minúsculas, com índices SQLite e tratamento de conflitos concorrentes. Em «Os meus dados» é possível editar os dados pessoais facultativos e carregar, substituir ou remover uma fotografia, com confirmação por palavra-passe e MFA. Os dados persistem entre sessões e estão integrados na exportação e eliminação. A migração `0003_registration_profile` preserva as contas existentes e interrompe se encontrar conflitos; aplicar com `db upgrade`, sem recriar a base. Os dados adicionais destinam-se a demonstração académica com dados fictícios; a recolha de dados reais exige justificação prévia. O email não é usado para recuperação e o cargo é apenas consultável quando aplicável. A gestão Admin mantém apenas os dados necessários ao controlo de acesso. Ver [documentação dos perfis pessoais](docs/personal_profiles.md).
+
+A data de nascimento substitui a idade editável. A idade é calculada automaticamente, considerando o aniversário; a regra para 29 de fevereiro e a preservação das idades antigas pela migração `0004_birth_date` estão documentadas em [data de nascimento e idade](docs/birth_dates.md).
+
+## Temas visuais
+
+O seletor de tema na navbar e nos ecrãs de autenticação permite escolher Claro, Escuro ou Automático. A preferência é guardada no navegador e aplicada antes dos estilos, mantendo-se após navegação, atualização e logout. Automático acompanha as alterações do sistema; escolhas manuais prevalecem. A implementação adapta formulários, tabelas, cartões e estados através de variáveis CSS, sem migrações ou alterações à autenticação. Ver [temas visuais e validação](docs/themes.md).
 
 ## Limitações
 
-Sem recuperação/substituição/desativação de MFA, alteração de palavra-passe ou edição do perfil pessoal. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão.
+Sem recuperação/substituição/desativação de MFA ou alteração de palavra-passe. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão. A validação inclui renderização HTTP/Jinja e Chrome headless em quatro resoluções; não foi feita validação manual em dispositivos físicos.
 
 O `.env` original foi retirado do controlo de versões no checkpoint, mas pode existir no histórico anterior. Se houve exposição, a rotação da chave MFA exige recifrar os dados; a chave HMAC exige um plano para logs existentes. Não houve reescrita do histórico nem substituição automática dessas chaves.
 
