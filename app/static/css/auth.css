@@ -1,8 +1,10 @@
 /* Apresenta??o dos ecr?s p?blicos de autentica??o. */
 .public-brand {
     justify-content:center;
-    margin:35px auto 10px;
+    margin:12px auto 10px;
 }
+.public-toolbar { display:flex; justify-content:flex-end; max-width:530px; min-height:60px; padding:16px 20px 0; margin:0 auto; }
+.public-toolbar .theme-menu { left:auto; right:0; }
 .public main {
     max-width:530px;
     margin:0 auto;
@@ -20,7 +22,8 @@
     margin:20px 0;
 }
 .qr img {
-    background:white;
+    /* Fundo branco intencional para preservar a leitura do código QR. */
+    background:var(--button-text);
     border:1px solid var(--line);
     border-radius:10px;
     padding:10px;

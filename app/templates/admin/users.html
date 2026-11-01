@@ -6,8 +6,8 @@
     </label>
     <label>Perfil<select name="role">
     <option value="">Todos</option>
-    <option value="user" {{ 'selected' if request.args.get('role')=='user' }}>Utilizador</option>
-    <option value="admin" {{ 'selected' if request.args.get('role')=='admin' }}>Administrador</option>
+    <option value="user" {% if request.args.get('role') == 'user' %}selected{% endif %}>Utilizador</option>
+    <option value="admin" {% if request.args.get('role') == 'admin' %}selected{% endif %}>Administrador</option>
     </select>
     </label>
     <button>Pesquisar</button>

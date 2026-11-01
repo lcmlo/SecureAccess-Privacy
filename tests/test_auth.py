@@ -7,7 +7,7 @@ from .db_helpers import get_db
 def test_registration_default_role_and_hash(app, client):
     csrf(client)
     response = post(
-        client, "/register", {"username": "nova", "password": PASSWORD, "role": "admin"}
+        client, "/register", {"username": "nova", "email": "nova@example.com", "password": PASSWORD, "password_confirmation": PASSWORD, "role": "admin"}
     )
     assert response.status_code == 302
     with app.app_context():

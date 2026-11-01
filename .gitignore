@@ -6,9 +6,16 @@ mfa.db
 .venv/
 .DS_Store
 .env
+.env.*
+!.env.example
 *.db
 *.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
 *.bak
 .pytest_cache/
+.ruff_cache/
 artifacts/
 instance/

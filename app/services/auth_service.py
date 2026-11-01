@@ -9,9 +9,11 @@ from werkzeug.exceptions import BadRequest, Forbidden, TooManyRequests
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
-from app.models import AuthAttempt, User
+from app.models import AuthAttempt, User, UserProfile
 from app.services.audit_service import audit
 from app.services.mfa_service import verify_totp
+from app.services.profile_service import check_available, duplicate_error, validate_profile
+from app.utils.identifiers import normalize_email
 from app.utils.pseudonymization import pseudonym, user_ref
 
 DUMMY_HASH = generate_password_hash("unavailable-account-password")
@@ -43,14 +45,17 @@ def throttle(scope, identity, origin):
             raise TooManyRequests("Demasiadas tentativas. Aguarde 15 minutos.")
 
 
-def register(username, password, origin):
+def register(username, password, origin, email=""):
     throttle("register", origin or "local", origin)
-    username = username.strip()
+    username, _ = validate_profile(username, "")
+    email = normalize_email(email)
     if not re.fullmatch(r"[\w.-]{3,64}", username) or not 12 <= len(password) <= 128:
         raise BadRequest(
             "Use um nome de utilizador de 3 a 64 caracteres e uma palavra-passe de 12 a 128 caracteres."
         )
-    user = User(username=username, password_hash=generate_password_hash(password), role="user")
+    check_available(username, email)
+    user = User(username=username, email=email, password_hash=generate_password_hash(password), role="user")
+    user.profile = UserProfile()
     try:
         db.session.add(user)
         db.session.flush()
@@ -58,14 +63,14 @@ def register(username, password, origin):
         db.session.commit()
     except IntegrityError as error:
         db.session.rollback()
-        raise BadRequest("Não foi possível criar a conta com os dados indicados.") from error
+        raise duplicate_error(error) from error
     return user
 
 
 def start_login(username, password, origin):
     username = username.strip()
     throttle("login", username.casefold(), origin)
-    user = db.session.scalar(db.select(User).where(User.username == username))
+    user = db.session.scalar(db.select(User).where(User.username.collate("IDENTITY_NOCASE") == username))
     valid = check_password_hash(user.password_hash if user else DUMMY_HASH, password)
     if not user or not user.active or not valid:
         audit(

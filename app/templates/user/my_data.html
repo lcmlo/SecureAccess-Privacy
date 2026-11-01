@@ -1,22 +1,47 @@
 {% extends 'layouts/admin_base.html' if current_user.role == 'admin' else 'layouts/user_base.html' %}
 {% block content %}
+    <section class="card personal-profile">
+        <div class="profile-summary">
+            <span class="avatar profile-portrait" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 21v-2a8 8 0 0 1 16 0v2" stroke-linecap="round"/>
+                </svg>
+                {% if account.photo_available %}<img src="{{ url_for('user.profile_photo') }}" alt="" width="80" height="80" data-navbar-avatar>{% endif %}
+            </span>
+            <div class="profile-identity">
+                <h2>{{ account.full_name or account.username }}</h2>
+                <p class="profile-contact"><span>@{{ account.username }}</span><span>{{ account.email or 'Email não indicado' }}</span></p>
+                <span class="badge {{ 'ok' if account.active else 'danger' }}">{{ 'Conta ativa' if account.active else 'Conta desativada' }}</span>
+            </div>
+            <a class="button secondary profile-edit" href="{{ url_for('user.edit_data') }}">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15l-1 6Z"/></svg>
+                Editar dados
+            </a>
+        </div>
+        <h2 class="profile-section-title">Informações pessoais</h2>
+        <dl class="profile-info-grid">
+            <div class="profile-info-field"><dt>Nome completo</dt><dd>{{ account.full_name or 'Não indicado' }}</dd></div>
+            <div class="profile-info-field"><dt>Nome de utilizador</dt><dd>{{ account.username }}</dd></div>
+            <div class="profile-info-field"><dt>Email</dt><dd>{{ account.email or 'Não indicado' }}</dd></div>
+            <div class="profile-info-field"><dt>Cargo</dt><dd>{{ account.job_title or 'Não indicado' }}</dd></div>
+            <div class="profile-info-field" data-birth-date-field><dt>Data de nascimento</dt><dd>{{ account.birth_date[8:10] ~ '/' ~ account.birth_date[5:7] ~ '/' ~ account.birth_date[:4] if account.birth_date else 'Não indicado' }}</dd></div>
+            <div class="profile-info-field" data-age-field><dt>Idade</dt><dd data-age-display data-birth-date-value="{{ account.birth_date or '' }}">{{ (account.age ~ (' ano' if account.age == 1 else ' anos')) if account.age is not none else 'Não indicada' }}</dd></div>
+            <div class="profile-info-field"><dt>Género</dt><dd>{{ {'feminino':'Feminino','masculino':'Masculino','nao_binario':'Não binário','outro':'Outro','prefiro_nao_indicar':'Prefiro não indicar'}.get(account.gender, 'Não indicado') }}</dd></div>
+            <div class="profile-info-field"><dt>Estado civil</dt><dd>{{ {'solteiro':'Solteiro/a','casado':'Casado/a','uniao_facto':'União de facto','divorciado':'Divorciado/a','viuvo':'Viúvo/a','outro':'Outro'}.get(account.marital_status, 'Não indicado') }}</dd></div>
+            <div class="profile-info-field"><dt>NIF</dt><dd>{% if account.tax_number %}<span aria-label="NIF parcialmente oculto">{{ ('•' * (account.tax_number|length - 3)) ~ account.tax_number[-3:] if account.tax_number|length > 3 else '•••' }}</span>{% else %}Não indicado{% endif %}</dd></div>
+            <div class="profile-info-field"><dt>Morada</dt><dd>{{ account.address or 'Não indicado' }}</dd></div>
+        </dl>
+        <p class="hint">Os dados pessoais adicionais são facultativos e destinam-se à demonstração académica. O email não é usado para recuperação de conta.</p>
+    </section>
     <section class="card">
     <h2>Informações da conta</h2>
-    <dl>
-    <dt>Nome de utilizador</dt>
-    <dd>{{ account.username }}</dd>
-    <dt>Identificador da conta</dt>
-    <dd>{{ account.id }}</dd>
-    <dt>Perfil de acesso</dt>
-    <dd>{{ 'Administrador' if account.role == 'admin' else 'Utilizador' }}</dd>
-    <dt>Autenticação multifator</dt>
-    <dd>
-    <span class="badge ok">{{ 'Ativa' if account.mfa_enabled else 'Inativa' }}</span>
-    </dd>
-    <dt>Data de criação (UTC)</dt>
-    <dd>{{ account.created_at }}</dd>
-    <dt>Estado da conta</dt>
-    <dd>{{ 'Ativa' if account.active else 'Desativada' }}</dd>
+    <dl class="account-info-grid">
+    <div><dt>Identificador da conta</dt><dd>{{ account.id }}</dd></div>
+    <div><dt>Perfil de acesso</dt><dd>{{ 'Administrador' if account.role == 'admin' else 'Utilizador' }}</dd></div>
+    <div><dt>Autenticação multifator</dt><dd><span class="badge {{ 'ok' if account.mfa_enabled else 'warn' }}">{{ 'Ativa' if account.mfa_enabled else 'Inativa' }}</span></dd></div>
+    <div><dt>Data de criação (UTC)</dt><dd>{{ account.created_at }}</dd></div>
+    <div><dt>Estado da conta</dt><dd>{{ 'Ativa' if account.active else 'Desativada' }}</dd></div>
     </dl>
     <div class="actions">
     <a class="button" href="{{ url_for('privacy.export') }}">Exportar os meus dados</a>
@@ -26,6 +51,6 @@
     <section id="mfa" class="card">
     <h2>Gestão da MFA</h2>
     <p>A MFA é obrigatória e foi configurada no primeiro acesso. Não é permitida a sua desativação neste protótipo. A substituição do autenticador e a recuperação da conta ainda não estão disponíveis.</p>
-    <p class="hint">O perfil e o nome de utilizador não são editáveis nesta página.</p>
+    <p class="hint">O perfil de acesso e o estado da MFA são geridos separadamente dos seus dados pessoais.</p>
     </section>
 {% endblock %}

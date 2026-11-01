@@ -1,6 +1,6 @@
-﻿{% with messages=get_flashed_messages() %}
-    {% for message in messages %}
-        <div class="flash" role="status">
+{% with messages=get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="flash{% if category == 'success' %} ok{% endif %}" role="status">
             {{ message }}<button type="button" class="dismiss-alert" data-dismiss-alert aria-label="Fechar mensagem">×</button>
         </div>
     {% endfor %}

@@ -1,9 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-PT">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title or 'Autenticação' }} · SecureAccess Privacy</title>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block styles %}{% endblock %}
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>

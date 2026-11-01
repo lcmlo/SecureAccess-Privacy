@@ -15,6 +15,9 @@ from app.services.retention_service import cleanup
 def init_app(app):
     @app.before_request
     def protect():
+        if request.endpoint == "user.edit_data":
+            request.max_content_length = 3 * 1024 * 1024
+            request.max_form_memory_size = 128 * 1024
         if request.endpoint != "static":
             cleanup()
         if (

@@ -6,7 +6,7 @@
     <p>Aceda ao seu espaço de segurança e privacidade.</p>
     <form method="post">{{ csrf() }}<label>Nome de utilizador<input name="username" autocomplete="username" maxlength="64" required>
     </label>
-    <label>Palavra-passe<input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+    <label>Palavra-passe<input type="password" name="password" autocomplete="current-password" maxlength="128" data-password-toggle required>
     </label>
     <button>Entrar com segurança</button>
     </form>

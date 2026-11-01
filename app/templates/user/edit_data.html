@@ -1,0 +1,58 @@
+{% extends 'layouts/admin_base.html' if current_user.role == 'admin' else 'layouts/user_base.html' %}
+{% block content %}
+    <section class="card profile-card">
+        <h2>Informação pessoal</h2>
+        <p>Complete apenas os dados que pretende associar ao seu perfil.</p>
+        <div class="notice">Demonstração académica: os dados pessoais adicionais são facultativos. Utilize dados fictícios. A recolha de dados reais exige uma finalidade e necessidade justificadas.</div>
+        {% if error_message %}<div class="notice" role="alert">{{ error_message }}</div>{% endif %}
+        <form method="post" action="{{ url_for('user.edit_data') }}" enctype="multipart/form-data">
+            {{ csrf() }}
+            <div class="profile-photo-editor">
+                {% if values.photo_available %}<img class="profile-photo" src="{{ url_for('user.profile_photo') }}" alt="Fotografia de perfil">{% endif %}
+                <div>
+                    <label>Fotografia de perfil (opcional)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>
+                    <p class="hint">JPEG, PNG ou WebP, até 2 MB e 16 megapíxeis. A fotografia é reduzida e os metadados são removidos. Se o formulário apresentar um erro, selecione novamente o ficheiro.</p>
+                    {% if values.photo_available %}<label class="check"><input type="checkbox" name="remove_photo" value="1"> Remover fotografia</label>{% endif %}
+                </div>
+            </div>
+            <div class="profile-fields">
+            <label>Nome completo (opcional)
+                <input name="full_name" value="{{ values.full_name or '' }}" autocomplete="name" maxlength="120">
+            </label>
+            <label>Nome de utilizador
+                <input name="username" value="{{ values.username }}" autocomplete="username" pattern="[\p{L}\p{N}_\.\-]{3,64}" minlength="3" maxlength="64" required>
+            </label>
+            <label>Email<input type="email" name="email" value="{{ values.email or '' }}" autocomplete="email" maxlength="254" {% if values.email %}required{% endif %}></label>
+            <div class="birth-date-fields">
+                <label>Data de nascimento (opcional)<input type="date" name="birth_date" id="birth-date" value="{{ values.birth_date or '' }}" max="{{ today }}" autocomplete="bday" aria-describedby="birth-date-hint" data-birth-date></label>
+                <label>Idade<input id="birth-age" value="{{ (values.age ~ (' ano' if values.age == 1 else ' anos')) if values.age is not none else 'Não indicada' }}" readonly aria-live="polite" data-age-output></label>
+            </div>
+            <label>Género (opcional)<select name="gender">
+                <option value="">Não indicado</option>
+                {% for key, label in [('feminino','Feminino'),('masculino','Masculino'),('nao_binario','Não binário'),('outro','Outro'),('prefiro_nao_indicar','Prefiro não indicar')] %}
+                <option value="{{ key }}" {% if values.gender == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select></label>
+            <label>NIF (opcional)<input name="tax_number" value="{{ values.tax_number or '' }}" inputmode="numeric" pattern="[0-9]{9}" maxlength="9"></label>
+            <label>Morada (opcional)<input name="address" value="{{ values.address or '' }}" autocomplete="street-address" maxlength="300"></label>
+            <label>Estado civil (opcional)<select name="marital_status">
+                <option value="">Não indicado</option>
+                {% for key, label in [('solteiro','Solteiro/a'),('casado','Casado/a'),('uniao_facto','União de facto'),('divorciado','Divorciado/a'),('viuvo','Viúvo/a'),('outro','Outro')] %}
+                <option value="{{ key }}" {% if values.marital_status == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select></label>
+            {% if values.job_title %}<label>Cargo<input value="{{ values.job_title }}" readonly></label>{% endif %}
+            </div>
+            <p class="hint" id="birth-date-hint">Idade calculada automaticamente com a data atual em UTC. Para nascimentos a 29 de fevereiro, o aniversário é considerado a 1 de março nos anos não bissextos. A data é mais específica do que a idade; a sua recolha real exige uma finalidade justificada.</p>
+            <p class="hint">O username deve ter entre 3 e 64 caracteres. Após a alteração, utilize o novo nome para iniciar sessão. O email não é usado para recuperação de conta e não está verificado.</p>
+            <fieldset>
+                <legend>Confirmar identidade</legend>
+                {{ identity() }}
+            </fieldset>
+            <div class="actions">
+                <button type="submit">Guardar alterações</button>
+                <a class="button secondary" href="{{ url_for('user.data') }}">Cancelar</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

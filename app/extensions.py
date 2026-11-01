@@ -9,6 +9,8 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
+from app.utils.identifiers import compare_identities
+
 db = SQLAlchemy()
 migrate = Migrate(compare_type=False, render_as_batch=True)
 login_manager = LoginManager()
@@ -18,6 +20,7 @@ csrf = CSRFProtect()
 @event.listens_for(Engine, "connect")
 def configure_sqlite(connection, record):
     if isinstance(connection, sqlite3.Connection):
+        connection.create_collation("IDENTITY_NOCASE", compare_identities)
         cursor = connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA secure_delete=ON")
