@@ -1,8 +1,19 @@
 {% extends 'layouts/admin_base.html' %}
 {% block content %}
+    <div class="cards">
+        <section class="card">
+            <h2>Utilizador <span class="badge">user</span></h2>
+            <ul><li>Acesso e edição dos próprios dados.</li><li>Consulta do histórico pessoal.</li><li>Exportação dos próprios dados.</li><li>Pedidos de eliminação.</li></ul>
+        </section>
+        <section class="card">
+            <h2>Administrador <span class="badge">admin</span></h2>
+            <ul><li>Acesso ao painel administrativo.</li><li>Gestão de utilizadores e permissões.</li><li>Consulta dos logs autorizados.</li><li>Gestão de pedidos de eliminação.</li><li>Consulta e edição do próprio perfil pessoal.</li></ul>
+        </section>
+    </div>
     <section class="card">
     <h2>Menor privilégio</h2>
-    <p>Novas contas recebem sempre o perfil user. A atribuição de privilégios exige autorização administrativa e confirmação da identidade. A alteração do próprio perfil está bloqueada.</p>
+    <p>Novas contas recebem sempre o perfil user. A atribuição de privilégios exige autorização administrativa e confirmação da identidade. A alteração das próprias permissões está bloqueada; os dados pessoais continuam editáveis em «O meu perfil».</p>
+    <details><summary>Consultar matriz de permissões</summary>
     <div class="table-wrap">
     <table>
     <thead>
@@ -56,5 +67,46 @@
     </tbody>
     </table>
     </div>
+    </details>
     </section>
+    <section class="card">
+        <h2>Gestão de permissões dos utilizadores</h2>
+        <p>Apenas são apresentados os dados necessários para identificar a conta. As alterações exigem palavra-passe e um código MFA novo.</p>
+        <form class="filters" method="get" action="{{ url_for('admin.permissions') }}">
+            <label>Pesquisar por username<input name="q" value="{{ request.args.get('q', '') }}" maxlength="64"></label>
+            <label>Perfil<select name="role">
+                <option value="">Todos</option>
+                <option value="user" {% if request.args.get('role') == 'user' %}selected{% endif %}>Utilizador</option>
+                <option value="admin" {% if request.args.get('role') == 'admin' %}selected{% endif %}>Administrador</option>
+            </select></label>
+            <button type="submit">Pesquisar</button>
+        </form>
+        <p class="hint">Até 200 contas por pesquisa. As promoções exigem uma conta ativa com MFA configurada. O email, NIF e morada não são necessários para esta operação.</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Nome de utilizador</th><th>Nome completo</th><th>Perfil atual</th><th>MFA</th><th>Ações</th></tr></thead>
+                <tbody>
+                {% for row in users %}
+                    <tr>
+                        <td>{{ row.username }}</td><td>{{ row.profile.full_name if row.profile and row.profile.full_name else 'Não indicado' }}</td>
+                        <td>{{ 'Administrador' if row.role == 'admin' else 'Utilizador' }}</td>
+                        <td><span class="badge {{ 'ok' if row.mfa_enabled else 'warn' }}">{{ 'Ativa' if row.mfa_enabled else 'Inativa' }}</span></td>
+                        <td>
+                            {% if row.id == current_user.id %}<span class="hint">A sua conta — permissões protegidas</span>
+                            {% elif row.role == 'user' and (not row.active or not row.mfa_enabled) %}<span class="hint">Ative a conta e configure a MFA antes de promover.</span>
+                            {% else %}<a class="button {{ 'secondary' if row.role == 'admin' else '' }}" href="{{ url_for('admin.change_role', uid=row.id, action='user' if row.role == 'admin' else 'admin') }}" data-role-dialog="role-dialog-{{ row.id }}">{{ 'Remover permissões de administrador' if row.role == 'admin' else 'Tornar administrador' }}</a>{% endif %}
+                        </td>
+                    </tr>
+                {% else %}<tr><td colspan="5">Não foram encontradas contas.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% for row in users if row.id != current_user.id and (row.role == 'admin' or (row.active and row.mfa_enabled)) %}
+        <dialog class="role-dialog" id="role-dialog-{{ row.id }}" aria-labelledby="role-title-{{ row.id }}">
+            {% with target=row, new_role='user' if row.role == 'admin' else 'admin' %}
+                {% include 'components/role_confirmation_form.html' %}
+            {% endwith %}
+        </dialog>
+    {% endfor %}
 {% endblock %}

@@ -233,9 +233,17 @@ O registo solicita username, email, palavra-passe e confirmação da palavra-pas
 
 A data de nascimento substitui a idade editável. A idade é calculada automaticamente, considerando o aniversário; a regra para 29 de fevereiro e a preservação das idades antigas pela migração `0004_birth_date` estão documentadas em [data de nascimento e idade](docs/birth_dates.md).
 
+## Perfil do administrador e permissões
+
+O administrador acede ao próprio perfil pelo menu da fotografia/nome na navbar, reutilizando os formulários e serviços pessoais. Em **Admin → Perfis e permissões**, pode promover e despromover outras contas com confirmação explícita, palavra-passe e MFA. O backend protege as próprias permissões, o último administrador e as sessões revogadas. Não são necessárias novas migrações. Ver [perfil Admin e gestão de permissões](docs/admin_profiles_permissions.md).
+
 ## Temas visuais
 
 O seletor de tema na navbar e nos ecrãs de autenticação permite escolher Claro, Escuro ou Automático. A preferência é guardada no navegador e aplicada antes dos estilos, mantendo-se após navegação, atualização e logout. Automático acompanha as alterações do sistema; escolhas manuais prevalecem. A implementação adapta formulários, tabelas, cartões e estados através de variáveis CSS, sem migrações ou alterações à autenticação. Ver [temas visuais e validação](docs/themes.md).
+
+## Layout responsivo
+
+A navegação e os conteúdos adaptam-se a desktop, tablet e smartphone na mesma aplicação. Até 1023 px, a sidebar abre como gaveta lateral; em smartphones, a navbar fica compacta e os formulários usam uma coluna. As tabelas mantêm scroll apenas no contentor. Ver [layout responsivo, testes e limites da validação](docs/responsive.md).
 
 ## Limitações
 

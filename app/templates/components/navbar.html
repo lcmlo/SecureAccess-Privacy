@@ -1,25 +1,23 @@
 <header>
     <div class="topbar-context">
-        <button type="button" class="secondary menu-toggle" aria-controls="app-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> Menu</button>
+        <button type="button" class="secondary menu-toggle" aria-label="Abrir menu principal" aria-controls="app-sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="menu-label">Menu</span></button>
+        <a class="mobile-brand" href="{{ url_for('admin.dashboard') if current_user.role == 'admin' else url_for('user.dashboard') }}">{% include 'components/brand.html' %}</a>
         <span class="topbar-title">{{ title or 'SecureAccess Privacy' }}</span>
     </div>
     <div class="topbar-account">
         {% include 'components/theme_picker.html' %}
-        <a class="profile" href="{{ url_for('admin.permissions') if current_user.role == 'admin' else url_for('user.data') }}">
-            <span class="avatar" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 21v-2a8 8 0 0 1 16 0v2" stroke-linecap="round"/>
-                </svg>
-                {% if current_user.profile and current_user.profile.photo %}
-                    <img src="{{ url_for('user.profile_photo') }}" alt="" width="40" height="40" data-navbar-avatar>
-                {% endif %}
-            </span>
-            <span class="profile-text">
-                <span class="profile-name" title="{{ current_user.username }}">{{ current_user.username }}</span>
-                <small>{{ 'Administrador' if current_user.role == 'admin' else 'Utilizador' }}</small>
-            </span>
-        </a>
+            <details class="account-menu">
+                <summary class="profile" aria-label="Menu do perfil de {{ current_user.username }}">
+                    {% include 'components/account_identity.html' %}
+                    <svg class="account-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <div class="account-dropdown">
+                    <div class="account-menu-label"><strong>{{ current_user.username }}</strong><small>{{ 'Administrador' if current_user.role == 'admin' else 'Utilizador' }}</small></div>
+                    <a href="{{ url_for('user.data') }}">O meu perfil</a>
+                    <a href="{{ url_for('user.edit_data') }}">Editar dados</a>
+                    <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button type="submit">Terminar sessão</button></form>
+                </div>
+            </details>
         <form class="logout-form" method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="secondary">Sair</button></form>
     </div>
 </header>

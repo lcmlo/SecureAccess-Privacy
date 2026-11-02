@@ -51,7 +51,7 @@ def test_admin_actions_revoke_sessions(app, client):
         post(
             client,
             f"/admin/users/{uid}",
-            {**confirmation(app, aid, secret), "action": "admin"},
+            {**confirmation(app, aid, secret), "action": "admin", "confirmation": "ALTERAR", "expected_role": "user", "target_version": "2"},
         ).status_code
         == 302
     )

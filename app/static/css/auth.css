@@ -22,10 +22,12 @@
     margin:20px 0;
 }
 .qr img {
+    max-width:100%;
+    height:auto;
     /* Fundo branco intencional para preservar a leitura do código QR. */
     background:var(--button-text);
     border:1px solid var(--line);
     border-radius:10px;
     padding:10px;
 }
-@media (max-width:760px) { .auth-card { padding:24px; } .public-brand { margin-top:15px; } }
+@media (max-width:767px) { .auth-card { padding:24px; } .public-brand { margin-top:15px; } }

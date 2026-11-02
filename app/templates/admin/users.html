@@ -39,10 +39,10 @@
             <summary>Gerir conta</summary>
             <form method="post" action="{{ url_for('admin.update_user', uid=row.id) }}">{{ csrf() }}<label>Operação<select name="action">
             <option value="{{ 'deactivate' if row.active else 'activate' }}">{{ 'Desativar' if row.active else 'Reativar' }}</option>
-            <option value="{{ 'user' if row.role=='admin' else 'admin' }}">Atribuir perfil {{ 'user' if row.role=='admin' else 'admin' }}</option>
             </select>
             </label>{{ identity() }}<button>Aplicar alteração</button>
             </form>
+            <a href="{{ url_for('admin.permissions', q=row.username) }}">Gerir permissões</a>
             </details>
         {% else %}
             A sua conta
