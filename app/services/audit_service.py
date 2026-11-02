@@ -8,6 +8,9 @@ from app.models import AuditLog
 from app.utils.pseudonymization import user_ref
 
 EVENTS = {
+    "USER_PROMOTED_TO_ADMIN": "Permissões administrativas atribuídas",
+    "ADMIN_DEMOTED_TO_USER": "Permissões administrativas removidas",
+    "ROLE_CHANGE_DENIED": "Alteração de permissões recusada",
     "dados_pessoais_alterados": "Dados pessoais alterados",
     "registo": "Registo da conta",
     "login": "Login",

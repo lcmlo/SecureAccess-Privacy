@@ -51,6 +51,16 @@ def init_app(app):
 
     def handle_error(error):
         db.session.rollback()
+        if (
+            request.method == "POST" and current_user.is_authenticated
+            and error.code in (400, 403, 404, 409, 429)
+            and (request.endpoint == "admin.change_role" or (
+                request.endpoint == "admin.update_user" and request.form.get("action") in ("user", "admin")
+            ))
+        ):
+            from app.services.user_service import audit_role_denied
+
+            audit_role_denied(current_user.id, (request.view_args or {}).get("uid"))
         message = "O recurso não está disponível ou não tem permissão para esta operação."
         if isinstance(error, CSRFError):
             message = "Formulário expirado. Recarregue a página."

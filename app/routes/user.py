@@ -31,7 +31,8 @@ def dashboard():
 @login_required
 def data():
     return render_template(
-        "user/my_data.html", title="Os meus dados", account=current_user.public_data()
+        "user/my_data.html", title="O meu perfil" if current_user.role == "admin" else "Os meus dados",
+        account=current_user.public_data(),
     )
 
 

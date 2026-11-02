@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 from werkzeug.exceptions import BadRequest, Conflict, Forbidden, NotFound
 
 from app.extensions import db
-from app.models import AuditLog, DeletionRequest, User
+from app.models import AuditLog, DeletionRequest, User, UserProfile
 from app.services.audit_service import audit
 from app.utils.pseudonymization import user_ref
 
@@ -93,33 +94,56 @@ def admin_dashboard():
     ]
 
 
-def search_users(query="", role=""):
+def search_users(query="", role="", include_names=False):
     if role not in ("", "user", "admin"):
         raise BadRequest("Perfil inválido.")
     statement = db.select(User).where(func.instr(func.lower(User.username), query[:64].lower()) > 0)
     if role:
         statement = statement.where(User.role == role)
+    if include_names:
+        statement = statement.options(selectinload(User.profile).load_only(UserProfile.full_name))
     return db.session.scalars(statement.order_by(User.id).limit(200)).all()
 
 
-def update_user(actor_id, uid, action):
+def update_user(actor_id, uid, action, actor_version=None, expected_role=None, target_version=None):
     if action not in ("activate", "deactivate", "user", "admin") or actor_id == uid:
         raise Forbidden()
     lock_writes()
+    actor = db.session.get(User, actor_id, populate_existing=True)
+    if not actor or not actor.active or actor.role != "admin" or not actor.mfa_enabled:
+        raise Forbidden("A conta responsável já não tem autorização administrativa.")
+    if actor_version is not None and actor.session_version != actor_version:
+        raise Forbidden("A sessão administrativa foi revogada. Autentique-se novamente.")
     target = db.session.get(User, uid)
     if not target:
         raise NotFound()
+    if expected_role is not None and target.role != expected_role:
+        raise Conflict("O perfil desta conta foi alterado. Reveja e confirme novamente a operação.")
+    if target_version is not None and target.session_version != target_version:
+        raise Conflict("A conta foi atualizada. Reveja e confirme novamente a operação.")
+    if action in ("user", "admin") and target.role == action:
+        raise Conflict("A conta já possui o perfil indicado.")
     if action == "admin" and (not target.mfa_enabled or not target.active):
         raise Conflict("A conta deve estar ativa e ter MFA configurada.")
     if target.role == "admin" and target.active and action in ("deactivate", "user"):
         ensure_other_admin()
     if action in ("user", "admin"):
-        target.role, event = action, "perfil_alterado"
+        target.role = action
+        event = "USER_PROMOTED_TO_ADMIN" if action == "admin" else "ADMIN_DEMOTED_TO_USER"
     else:
         target.active, event = int(action == "activate"), "conta_alterada"
     target.session_version += 1
     audit(event, user_ref(actor_id))
     audit(event, user_ref(uid))
+    db.session.commit()
+
+
+def audit_role_denied(actor_id, target_id=None):
+    """Regista referências pseudonimizadas, sem dados do formulário ou segredos."""
+    db.session.rollback()
+    audit("ROLE_CHANGE_DENIED", user_ref(actor_id), "falha")
+    if target_id is not None and target_id != actor_id and db.session.get(User, target_id):
+        audit("ROLE_CHANGE_DENIED", user_ref(target_id), "falha")
     db.session.commit()
 
 
