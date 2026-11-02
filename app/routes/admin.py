@@ -3,8 +3,14 @@ from flask_login import current_user
 from werkzeug.exceptions import BadRequest, HTTPException
 
 from app.extensions import db
-from app.models import User
-from app.services import audit_service, privacy_service, retention_service, user_service
+from app.models import Department, JobPosition, User
+from app.services import (
+    audit_service,
+    organization_service,
+    privacy_service,
+    retention_service,
+    user_service,
+)
 from app.utils.decorators import admin_required
 from app.utils.forms import confirm_form_identity
 from app.utils.pseudonymization import user_ref
@@ -27,10 +33,13 @@ def dashboard():
 @bp.route("/users")
 @admin_required
 def users():
+    pagination = organization_service.search_collaborators(request.args)
     return render_template(
         "admin/users.html",
         title="Utilizadores",
-        users=user_service.search_users(request.args.get("q", ""), request.args.get("role", "")),
+        users=pagination.items, pagination=pagination,
+        departments=db.session.scalars(db.select(Department).order_by(Department.name)).all(),
+        positions=db.session.scalars(db.select(JobPosition).order_by(JobPosition.name)).all(),
     )
 
 

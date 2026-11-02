@@ -1,0 +1,12 @@
+<h2 id="role-title-{{ target.id }}">{{ 'Atribuir' if new_role == 'admin' else 'Remover' }} permissões de administrador</h2>
+<p>Confirme a alteração das permissões de {{ target.username }}. As sessões anteriores serão revogadas.</p>
+<form method="post" action="{{ url_for('admin.change_role', uid=target.id) }}">
+ {{ csrf() }}
+ <input type="hidden" name="action" value="{{ new_role }}">
+ <input type="hidden" name="expected_role" value="{{ target.role }}">
+ <input type="hidden" name="target_version" value="{{ target.session_version }}">
+ <p>Perfil atual: {{ target.role }}. Novo perfil: {{ new_role }}.</p>
+ <label class="check"><input type="checkbox" name="confirmation" value="ALTERAR" required> Confirmo a alteração das permissões.</label>
+ <fieldset><legend>Confirmar identidade do administrador</legend>{{ identity() }}</fieldset>
+ <div class="actions"><a class="button secondary" href="{{ url_for('admin.permissions') }}" data-dialog-close>Cancelar</a><button type="submit">Confirmar alteração</button></div>
+</form>

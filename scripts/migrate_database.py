@@ -21,6 +21,11 @@ def copy_database(source, target):
         closing(sqlite3.connect(target)) as destination,
     ):
         original.backup(destination)
+        from app.utils.identifiers import compare_identities
+        from app.utils.organization_names import compare_organization_names
+
+        destination.create_collation("IDENTITY_NOCASE", compare_identities)
+        destination.create_collation("ORGANIZATION_NOCASE", compare_organization_names)
         if destination.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise RuntimeError("Falhou a verificação de integridade da cópia.")
 

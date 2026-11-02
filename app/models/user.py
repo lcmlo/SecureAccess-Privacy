@@ -48,4 +48,9 @@ class User(UserMixin, db.Model):
         if self.profile and self.profile.legacy_age is not None:
             data["legacy_age"] = self.profile.legacy_age
         data["photo_available"] = bool(self.profile and self.profile.photo)
+        position = self.profile.job_position if self.profile else None
+        data["job_position_id"] = position.id if position else None
+        data["job_position"] = position.name if position else None
+        data["department"] = position.department.name if position else None
+        data["job_position_active"] = bool(position and position.is_active and position.department.is_active)
         return data

@@ -15,7 +15,7 @@ from .conftest import post, seed, signin
 
 
 def test_factory_blueprints_and_metadata(app):
-    assert set(app.blueprints) == {"auth", "user", "privacy", "admin"}
+    assert set(app.blueprints) == {"auth", "user", "privacy", "admin", "organization"}
     assert {
         User.__tablename__,
         AuditLog.__tablename__,

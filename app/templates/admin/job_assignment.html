@@ -1,0 +1,21 @@
+{% extends 'layouts/admin_base.html' %}
+{% block scripts %}{{ super() }}<script src="{{ url_for('static', filename='js/organization.js') }}" defer></script>{% endblock %}
+{% block content %}
+{% include 'components/organization_tabs.html' %}
+<section class="card">
+ <h2>{{ target.profile.full_name if target.profile and target.profile.full_name else target.username }}</h2><p>@{{ target.username }}</p>
+ <p>Departamento atual: {{ target.profile.job_position.department.name if target.profile and target.profile.job_position else 'Departamento ainda não atribuído' }}.</p>
+ <p>Cargo atual: {{ target.profile.job_position.name if target.profile and target.profile.job_position else 'Cargo ainda não atribuído' }}.</p>
+ {% if target.profile and target.profile.job_title %}<p class="hint">Cargo anterior (texto conservado): {{ target.profile.job_title }}.</p>{% endif %}
+ {% if error_message %}<div class="notice" role="alert">{{ error_message }}</div>{% endif %}
+ <form method="post" data-job-assignment>{{ csrf() }}
+ <div class="profile-fields">
+ <label>Novo departamento<select name="department_id" data-department><option value="">Selecionar</option>{% for department in departments %}<option value="{{ department.id }}" {% if request.form.get('department_id') == department.id|string %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></label>
+ <label>Novo cargo<select name="job_position_id" data-position><option value="">Selecionar</option>{% for position in positions %}<option value="{{ position.id }}" data-department-id="{{ position.department_id }}" {% if request.form.get('job_position_id') == position.id|string %}selected{% endif %}>{{ position.name }} — {{ position.department.name }}</option>{% endfor %}</select></label>
+ </div>
+ <p class="hint">Selecione um cargo do departamento indicado. A atribuição profissional não altera o perfil User/Admin.</p>
+ <fieldset><legend>Confirmar identidade do administrador</legend>{{ identity() }}</fieldset>
+ <div class="actions"><button name="action" value="assign">Guardar</button><a class="button secondary" href="{{ url_for('admin.users') }}">Cancelar</a>{% if target.profile and target.profile.job_position_id %}<button class="destructive" name="action" value="remove">Remover atribuição</button>{% endif %}</div>
+ </form>
+</section>
+{% endblock %}

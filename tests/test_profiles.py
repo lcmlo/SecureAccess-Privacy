@@ -136,7 +136,10 @@ def test_profile_deletion_and_admin_minimization(app, client):
     assert edit(client, app, uid, secret).status_code == 302
     admin = app.test_client()
     aid, _ = signin(admin, app, "administrador", "admin")
-    assert b"Alice Silva" not in admin.get("/admin/users").data
+    # A gestão profissional necessita do nome; dados privados continuam excluídos.
+    listing = admin.get("/admin/users").get_data(as_text=True)
+    assert "Alice Silva" in listing
+    assert "tax_number" not in listing and "password_hash" not in listing
     with app.app_context():
         assert create_deletion_request(uid)
         from app.models import DeletionRequest

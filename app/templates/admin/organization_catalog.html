@@ -1,0 +1,29 @@
+{% extends 'layouts/admin_base.html' %}
+{% block content %}
+{% include 'components/organization_tabs.html' %}
+<section class="card">
+ <h2>{{ 'Editar' if item else 'Criar' }} {{ 'departamento' if kind == 'departments' else 'cargo' }}</h2>
+ {% if error_message %}<div class="notice" role="alert">{{ error_message }}</div>{% endif %}
+ <form method="post">
+ {{ csrf() }}
+ <div class="profile-fields">
+ <label>Nome<input name="name" maxlength="120" required value="{{ request.form.get('name', item.name if item else '') }}"></label>
+ {% if kind == 'positions' %}
+ <label>Departamento<select name="department_id" required><option value="">Selecionar</option>{% for department in departments %}<option value="{{ department.id }}" {% if request.form.get('department_id', item.department_id|string if item else '') == department.id|string %}selected{% endif %} {% if not department.is_active %}disabled{% endif %}>{{ department.name }}{{ ' (inativo)' if not department.is_active else '' }}</option>{% endfor %}</select></label>
+ {% endif %}
+ <label>Descrição (opcional)<textarea name="description" maxlength="1000" rows="3">{{ request.form.get('description', item.description or '' if item else '') }}</textarea></label>
+ </div>
+ {% if item and kind == 'positions' %}<div class="notice">Alterar o departamento de um cargo altera também o departamento dos colaboradores associados.</div><label class="check"><input type="checkbox" name="confirm_move" value="1"> Confirmo a mudança de departamento e o seu efeito nas atribuições existentes.</label>{% endif %}
+ <fieldset><legend>Confirmar identidade</legend>{{ identity() }}</fieldset>
+ <div class="actions"><button name="action" value="save">Guardar</button><a class="button secondary" href="{{ url_for('organization.catalog', kind=kind) }}">Cancelar</a>
+ {% if item %}<button class="secondary" name="action" value="{{ 'deactivate' if item.is_active else 'reactivate' }}" formnovalidate>{{ 'Desativar' if item.is_active else 'Reativar' }}</button>{% endif %}</div>
+ </form>
+</section>
+<section class="card"><h2>Catálogo existente</h2><p class="hint">A desativação impede novas atribuições e conserva as contas e as atribuições anteriores. Os cargos não concedem permissões administrativas.</p>
+{% for group in (rows|groupby('department.name') if kind == 'positions' else [('Departamentos', rows)]) %}
+ <h3>{{ group[0] }}</h3><div class="organization-grid">
+ {% for row in group[1] %}<article class="organization-item"><h3>{{ row.name }}</h3><p>{{ row.description or 'Sem descrição.' }}</p><span class="badge {{ 'ok' if row.is_active else 'warn' }}">{{ 'Ativo' if row.is_active else 'Inativo' }}</span>{% if kind == 'positions' and not row.department.is_active %}<p class="hint">Departamento inativo</p>{% endif %}<div class="actions"><a class="button secondary" href="{{ url_for('organization.catalog', kind=kind, uid=row.id) }}">Editar / Alterar estado</a></div></article>{% else %}<p>Sem registos.</p>{% endfor %}
+ </div>
+{% endfor %}
+</section>
+{% endblock %}

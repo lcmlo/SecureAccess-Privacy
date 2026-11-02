@@ -8,6 +8,20 @@ from app.models import AuditLog
 from app.utils.pseudonymization import user_ref
 
 EVENTS = {
+    **{event: label for event, label in (
+        ("DEPARTMENT_CREATED", "Departamento criado"),
+        ("DEPARTMENT_UPDATED", "Departamento atualizado"),
+        ("DEPARTMENT_DEACTIVATED", "Departamento desativado"),
+        ("DEPARTMENT_REACTIVATED", "Departamento reativado"),
+        ("JOB_POSITION_CREATED", "Cargo criado"),
+        ("JOB_POSITION_UPDATED", "Cargo atualizado"),
+        ("JOB_POSITION_DEACTIVATED", "Cargo desativado"),
+        ("JOB_POSITION_REACTIVATED", "Cargo reativado"),
+        ("JOB_POSITION_ASSIGNED", "Cargo atribuído"),
+        ("JOB_POSITION_CHANGED", "Cargo alterado"),
+        ("JOB_POSITION_REMOVED", "Atribuição profissional removida"),
+        ("ORGANIZATION_CHANGE_DENIED", "Operação profissional recusada"),
+    )},
     "USER_PROMOTED_TO_ADMIN": "Permissões administrativas atribuídas",
     "ADMIN_DEMOTED_TO_USER": "Permissões administrativas removidas",
     "ROLE_CHANGE_DENIED": "Alteração de permissões recusada",

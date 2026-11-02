@@ -62,3 +62,19 @@ def test_migration_script_refuses_missing_source(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="não existe"):
         module.main()
     assert not (tmp_path / "instance" / "secureaccess.db").exists()
+
+
+def test_copy_current_database_with_custom_collations(app, tmp_path):
+    from app.extensions import db
+    from app.models import Department
+
+    module = load_script()
+    with app.app_context():
+        db.session.add(Department(name="Direção"))
+        db.session.commit()
+        source = Path(db.engine.url.database)
+        target = tmp_path / "current-copy.db"
+        before = hashlib.sha256(source.read_bytes()).hexdigest()
+        module.copy_database(source, target)
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == before
+        assert target.exists()

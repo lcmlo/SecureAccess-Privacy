@@ -17,6 +17,9 @@ class UserProfile(db.Model):
     address = db.Column(db.String(300))
     marital_status = db.Column(db.String(30))
     job_title = db.Column(db.String(120))
+    # Texto anterior conservado; as novas atribuições usam exclusivamente a FK.
+    job_position_id = db.Column(db.Integer, db.ForeignKey("job_positions.id", ondelete="RESTRICT"), index=True)
+    job_position = db.relationship("JobPosition")
     photo = db.Column(db.LargeBinary)
     updated_at = db.Column(db.Text, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     user = db.relationship("User", back_populates="profile")

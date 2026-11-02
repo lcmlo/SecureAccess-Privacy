@@ -11,6 +11,8 @@
             </span>
             <div class="profile-identity">
                 <h2>{{ account.full_name or account.username }}</h2>
+                <p>{{ account.department or 'Departamento ainda não atribuído' }} · {{ account.job_position or 'Cargo ainda não atribuído' }}</p>
+                <p class="hint">Perfil: {{ 'Administrador' if account.role == 'admin' else 'Utilizador' }}</p>
                 <p class="profile-contact"><span>@{{ account.username }}</span><span>{{ account.email or 'Email não indicado' }}</span></p>
                 <span class="badge {{ 'ok' if account.active else 'danger' }}">{{ 'Conta ativa' if account.active else 'Conta desativada' }}</span>
             </div>
@@ -24,13 +26,15 @@
             <div class="profile-info-field"><dt>Nome completo</dt><dd>{{ account.full_name or 'Não indicado' }}</dd></div>
             <div class="profile-info-field"><dt>Nome de utilizador</dt><dd>{{ account.username }}</dd></div>
             <div class="profile-info-field"><dt>Email</dt><dd>{{ account.email or 'Não indicado' }}</dd></div>
-            <div class="profile-info-field"><dt>Cargo</dt><dd>{{ account.job_title or 'Não indicado' }}</dd></div>
+            <div class="profile-info-field"><dt>Cargo profissional</dt><dd>{{ account.job_position or 'Cargo ainda não atribuído' }}</dd></div>
             <div class="profile-info-field" data-birth-date-field><dt>Data de nascimento</dt><dd>{{ account.birth_date[8:10] ~ '/' ~ account.birth_date[5:7] ~ '/' ~ account.birth_date[:4] if account.birth_date else 'Não indicado' }}</dd></div>
             <div class="profile-info-field" data-age-field><dt>Idade</dt><dd data-age-display data-birth-date-value="{{ account.birth_date or '' }}">{{ (account.age ~ (' ano' if account.age == 1 else ' anos')) if account.age is not none else 'Não indicada' }}</dd></div>
             <div class="profile-info-field"><dt>Género</dt><dd>{{ {'feminino':'Feminino','masculino':'Masculino','nao_binario':'Não binário','outro':'Outro','prefiro_nao_indicar':'Prefiro não indicar'}.get(account.gender, 'Não indicado') }}</dd></div>
             <div class="profile-info-field"><dt>Estado civil</dt><dd>{{ {'solteiro':'Solteiro/a','casado':'Casado/a','uniao_facto':'União de facto','divorciado':'Divorciado/a','viuvo':'Viúvo/a','outro':'Outro'}.get(account.marital_status, 'Não indicado') }}</dd></div>
             <div class="profile-info-field"><dt>NIF</dt><dd>{% if account.tax_number %}<span aria-label="NIF parcialmente oculto">{{ ('•' * (account.tax_number|length - 3)) ~ account.tax_number[-3:] if account.tax_number|length > 3 else '•••' }}</span>{% else %}Não indicado{% endif %}</dd></div>
             <div class="profile-info-field"><dt>Morada</dt><dd>{{ account.address or 'Não indicado' }}</dd></div>
+            <div class="profile-info-field"><dt>Departamento</dt><dd>{{ account.department or 'Departamento ainda não atribuído' }}</dd></div>
+            {% if account.job_title %}<div class="profile-info-field"><dt>Cargo anterior (texto conservado)</dt><dd>{{ account.job_title }}</dd></div>{% endif %}
         </dl>
         <p class="hint">Os dados pessoais adicionais são facultativos e destinam-se à demonstração académica. O email não é usado para recuperação de conta.</p>
     </section>

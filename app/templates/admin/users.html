@@ -1,8 +1,9 @@
 {% extends 'layouts/admin_base.html' %}
 {% block content %}
+    {% include 'components/organization_tabs.html' %}
     <section class="card">
     <form class="filters" method="get">
-    <label>Pesquisar utilizadores<input name="q" value="{{ request.args.get('q','') }}" maxlength="64">
+    <label>Username ou nome completo<input name="q" value="{{ request.args.get('q','') }}" maxlength="120">
     </label>
     <label>Perfil<select name="role">
     <option value="">Todos</option>
@@ -10,14 +11,18 @@
     <option value="admin" {% if request.args.get('role') == 'admin' %}selected{% endif %}>Administrador</option>
     </select>
     </label>
+    <label>Departamento<select name="department_id"><option value="">Todos</option>{% for department in departments %}<option value="{{ department.id }}" {% if request.args.get('department_id') == department.id|string %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></label>
+    <label>Cargo<select name="job_position_id"><option value="">Todos</option>{% for position in positions %}<option value="{{ position.id }}" {% if request.args.get('job_position_id') == position.id|string %}selected{% endif %}>{{ position.name }} — {{ position.department.name }}</option>{% endfor %}</select></label>
+    <label>Estado<select name="active"><option value="">Todos</option><option value="1" {% if request.args.get('active') == '1' %}selected{% endif %}>Ativa</option><option value="0" {% if request.args.get('active') == '0' %}selected{% endif %}>Desativada</option></select></label>
     <button>Pesquisar</button>
     </form>
-    <p class="hint">São apresentadas até 200 contas. Restrinja a pesquisa se necessário. As contas são criadas através do registo público, sempre como utilizador.</p>
+    <p class="hint">São apresentadas 25 contas por página. As contas são criadas através do registo público, sempre como utilizador. O cargo profissional não concede permissões administrativas.</p>
     <div class="table-wrap">
-    <table>
+    <table class="collaborators-table">
     <thead>
     <tr>
     <th>ID</th>
+    <th>Nome completo</th><th>Departamento</th><th>Cargo profissional</th>
     <th>Nome de utilizador</th>
     <th>Perfil</th>
     <th>MFA</th>
@@ -28,12 +33,16 @@
     <tbody>
     {% for row in users %}
         <tr>
-        <td>{{ row.id }}</td>
-        <td>{{ row.username }}</td>
-        <td>{{ row.role }}</td>
-        <td>{{ 'Ativa' if row.mfa_enabled else 'Inativa' }}</td>
-        <td>{{ 'Ativa' if row.active else 'Desativada' }}</td>
+        <td data-label="ID">{{ row.id }}</td>
+        <td data-label="Nome completo">{{ row.profile.full_name if row.profile and row.profile.full_name else 'Não indicado' }}</td>
+        <td data-label="Departamento">{{ row.profile.job_position.department.name if row.profile and row.profile.job_position else 'Departamento ainda não atribuído' }}</td>
+        <td data-label="Cargo profissional">{{ row.profile.job_position.name if row.profile and row.profile.job_position else 'Cargo ainda não atribuído' }}{% if row.profile and row.profile.job_position and (not row.profile.job_position.is_active or not row.profile.job_position.department.is_active) %} <span class="badge warn">Inativo</span>{% endif %}</td>
+        <td data-label="Username">{{ row.username }}</td>
+        <td data-label="Perfil">{{ 'Administrador' if row.role == 'admin' else 'Utilizador' }}</td>
+        <td data-label="MFA">{{ 'Ativa' if row.mfa_enabled else 'Inativa' }}</td>
+        <td data-label="Estado">{{ 'Ativa' if row.active else 'Desativada' }}</td>
         <td>
+        <a class="button secondary" href="{{ url_for('organization.assignment', uid=row.id) }}">Atribuir/Alterar cargo</a>
         {% if row.id != current_user.id %}
             <details>
             <summary>Gerir conta</summary>
@@ -51,11 +60,16 @@
         </tr>
     {% else %}
         <tr>
-        <td colspan="6">Não foram encontradas contas.</td>
+        <td colspan="9">Não foram encontradas contas.</td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
     </div>
+    <nav class="actions" aria-label="Paginação de utilizadores">
+    {% if pagination.has_prev %}<a class="button secondary" href="{{ url_for('admin.users', **dict(request.args, page=pagination.prev_num)) }}">Anterior</a>{% endif %}
+    <span>Página {{ pagination.page }} de {{ pagination.pages or 1 }} · {{ pagination.total }} contas</span>
+    {% if pagination.has_next %}<a class="button secondary" href="{{ url_for('admin.users', **dict(request.args, page=pagination.next_num)) }}">Seguinte</a>{% endif %}
+    </nav>
     </section>
 {% endblock %}

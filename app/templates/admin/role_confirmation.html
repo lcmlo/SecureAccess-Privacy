@@ -1,0 +1,5 @@
+{% extends 'layouts/admin_base.html' %}
+{% block content %}<section class="card narrow">
+{% if error_message %}<div class="notice" role="alert">{{ error_message }}</div>{% endif %}
+{% include 'components/role_confirmation_form.html' %}
+</section>{% endblock %}

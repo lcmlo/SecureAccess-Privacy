@@ -123,3 +123,19 @@ A chave MFA histórica não foi rodada automaticamente para não inutilizar os s
 A implementação demonstra mecanismos concretos de Privacy by Design, mas a avaliação jurídica, medidas organizativas e segurança operacional continuam necessárias.
 
 Referências: [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/stable/quickstart/), [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/) e [Flask-WTF CSRF](https://flask-wtf.readthedocs.io/en/1.2.x/csrf/).
+
+## Extensão de departamentos e cargos — 02/11/2026
+
+Esta atualização substitui as limitações históricas acima relativas à inexistência de edição pessoal e ao limite de 200 contas na listagem de colaboradores. A edição pessoal já existente foi preservada e a gestão profissional é agora paginada no servidor (25 contas).
+
+Implementado o modelo `Department → JobPosition → UserProfile → User`, sem duplicar utilizadores nem guardar departamentos redundantes no perfil. A migração `0005_organization` preserva `job_title`, contas, perfis e fotografias, e acrescenta restrições relacionais/índices. A collation `ORGANIZATION_NOCASE` garante unicidade com normalização Unicode, caixa e espaços. O seed transacional e idempotente insere os seis departamentos e 21 cargos da empresa fictícia. Catálogo completo, comandos e ficheiros estão em [Departamentos e cargos](organization.md).
+
+Na base local, antes da migração existiam **2 contas, 2 perfis e nenhum cargo em texto livre**. Após backup automático e migração, as contagens mantiveram-se. O seed criou **6 departamentos e 21 cargos**; a segunda execução criou **zero entradas**. `PRAGMA quick_check`, `foreign_key_check` e a comparação Alembic/modelos não identificaram problemas. Nenhuma conta recebeu um cargo por inferência.
+
+As rotas administrativas reutilizam autenticação, MFA, CSRF, auditoria pseudonimizada e retenção. O serviço volta a validar estado, role e versão de sessão sob reserva de escrita SQLite. A atribuição a User/Admin é independente da autorização. O perfil pessoal mostra os dados profissionais em leitura, ignora parâmetros profissionais manipulados e mantém NIF mascarado. Exportação inclui departamento/cargo e a eliminação abrange a atribuição sem eliminar o catálogo.
+
+Os separadores dentro de Utilizadores oferecem catálogo de departamentos/cargos e formulários de atribuição/remoção. Desativar conserva as relações; mover um cargo com colaboradores exige confirmação explícita. A pesquisa por username/nome e filtros por departamento/cargo/perfil/estado são combináveis. O email e dados pessoais desnecessários ficam fora da listagem. Em mobile a tabela transforma-se em cartões; catálogos e formulários reorganizam-se em uma coluna, respeitando os temas existentes.
+
+Foram restaurados quatro templates partilhados ausentes para manter navegação, avatar e confirmações de permissões: `sidebar.html`, `account_identity.html`, `role_confirmation_form.html` e `admin/role_confirmation.html`.
+
+Validação final: **170 testes Pytest aprovados em 48,70 s**, Ruff sem erros e `pip check` sem conflitos. Migrações reais em bases temporárias e testes de seed, unicidade, atribuições, autorização, estados, persistência, auditoria, exportação JSON/CSV, eliminação e dados legados. Chrome headless em **496 combinações** de 31 páginas/cenários × 8 resoluções × 2 temas, incluindo as cinco resoluções solicitadas e orientação horizontal. Verificados seletor dependente de cargos, ausência de overflow global, menus, formulários, cálculo da idade, temas automático/manual e logout real Flask/CSP. Flask iniciado numa porta temporária com `/login` HTTP 200 e CSRF presente. A validação física Android/iPhone/Safari permanece por realizar. Não foi adicionado um histórico completo de vínculos laborais: as atribuições atuais e os cargos inativos continuam identificáveis, e as operações permanecem em auditoria segundo a retenção configurada.

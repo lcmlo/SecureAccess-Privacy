@@ -245,7 +245,20 @@ O seletor de tema na navbar e nos ecrãs de autenticação permite escolher Clar
 
 A navegação e os conteúdos adaptam-se a desktop, tablet e smartphone na mesma aplicação. Até 1023 px, a sidebar abre como gaveta lateral; em smartphones, a navbar fica compacta e os formulários usam uma coluna. As tabelas mantêm scroll apenas no contentor. Ver [layout responsivo, testes e limites da validação](docs/responsive.md).
 
-## Limitações
+## Departamentos e cargos profissionais
+
+Em **Admin → Utilizadores**, os separadores **Gestão de departamentos** e **Gestão de cargos** permitem criar, editar, desativar e reativar o catálogo. **Atribuir/Alterar cargo** permite gerir a atribuição de cada colaborador, incluindo administradores, com palavra-passe, MFA, CSRF e auditoria. O cargo e o departamento são apenas consultáveis no perfil pessoal e nunca concedem permissões User/Admin.
+
+A migração `0005_organization` acrescenta `Department`, `JobPosition` e `UserProfile.job_position_id`, conservando o texto antigo de `job_title`. O departamento deriva sempre do cargo. A listagem combina pesquisa e filtros com paginação de 25 contas; em mobile apresenta cartões. A exportação e a eliminação incluem as novas atribuições.
+
+```powershell
+.\.venv\Scripts\python.exe -m flask --app run:app db upgrade
+.\.venv\Scripts\python.exe scripts/seed_job_positions.py
+```
+
+O seed idempotente inicializa os **6 departamentos e 21 cargos**; não substitui estados, atribuições ou cargos adicionais. Consultar [catálogo, modelo, regras, ficheiros e utilização](docs/organization.md) e o [relatório técnico](docs/implementation_report.md).
+
+## Limitações atuais
 
 Sem recuperação/substituição/desativação de MFA ou alteração de palavra-passe. Sem alertas, exportação administrativa, retenção legal especial, logs invioláveis ou scheduler instalado automaticamente. SQLite e limites por origem destinam-se a pequena escala e podem afetar utilizadores na mesma rede. Logout limpa o cookie atual; uma cópia roubada só é invalidada por expiração ou revogação da versão. A validação inclui renderização HTTP/Jinja e Chrome headless em quatro resoluções; não foi feita validação manual em dispositivos físicos.
 

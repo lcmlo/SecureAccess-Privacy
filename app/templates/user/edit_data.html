@@ -41,8 +41,11 @@
                 <option value="{{ key }}" {% if values.marital_status == key %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select></label>
-            {% if values.job_title %}<label>Cargo<input value="{{ values.job_title }}" readonly></label>{% endif %}
+            <label>Departamento<input value="{{ values.department or 'Departamento ainda não atribuído' }}" readonly></label>
+            <label>Cargo profissional<input value="{{ values.job_position or 'Cargo ainda não atribuído' }}" readonly></label>
+            {% if values.job_title %}<label>Cargo anterior (texto conservado)<input value="{{ values.job_title }}" readonly></label>{% endif %}
             </div>
+            <p class="hint">O departamento e o cargo profissional são definidos pelo administrador da empresa.</p>
             <p class="hint" id="birth-date-hint">Idade calculada automaticamente com a data atual em UTC. Para nascimentos a 29 de fevereiro, o aniversário é considerado a 1 de março nos anos não bissextos. A data é mais específica do que a idade; a sua recolha real exige uma finalidade justificada.</p>
             <p class="hint">O username deve ter entre 3 e 64 caracteres. Após a alteração, utilize o novo nome para iniciar sessão. O email não é usado para recuperação de conta e não está verificado.</p>
             <fieldset>
