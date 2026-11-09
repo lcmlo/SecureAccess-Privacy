@@ -249,7 +249,14 @@ def test_csrf_reauthentication_and_filters(client, app):
     pid, did = catalog(app)[0]
     path = f"/admin/organization/assign/{actor}"
     assert client.post(path, data={"job_position_id": pid, "department_id": did}).status_code == 400
-    assert post(client, path, {"job_position_id": pid, "department_id": did}).status_code == 403
+    response = post(
+        client,
+        path,
+        {"job_position_id": pid, "department_id": did},
+    )
+
+    assert response.status_code == 400
+    assert "Não foi possível confirmar a identidade" in response.get_data(as_text=True)
     assert (
         send(
             client, app, actor, secret, path, {"job_position_id": pid, "department_id": did}

@@ -52,7 +52,11 @@ def update_user(uid):
     if action in ("user", "admin"):
         return perform_role_change(uid)
     actor_version = session.get("version")
-    confirm_form_identity()
+    try:
+        confirm_form_identity()
+    except BadRequest as error:
+        flash(error.description, "error")
+        return redirect(url_for("admin.users"))
     user_service.update_user(current_user.id, uid, action, actor_version=actor_version)
     flash("Conta atualizada. Sessões anteriores revogadas.")
     return redirect(url_for("admin.users"))
@@ -85,7 +89,11 @@ def deletions():
 @bp.route("/deletions/<int:rid>", methods=["POST"])
 @admin_required
 def process_deletion(rid):
-    confirm_form_identity()
+    try:
+        confirm_form_identity()
+    except BadRequest as error:
+        flash(error.description, "error")
+        return redirect(url_for("admin.deletions"))
     privacy_service.process_request(current_user.id, rid, request.form.get("action"))
     flash("Pedido atualizado. A conclusão executa a eliminação na mesma transação.")
     return redirect(url_for("admin.deletions"))
@@ -157,7 +165,11 @@ def perform_role_change(uid):
 @admin_required
 def settings():
     if request.method == "POST":
-        confirm_form_identity()
+        try:
+            confirm_form_identity()
+        except BadRequest as error:
+            flash(error.description, "error")
+            return redirect(url_for("admin.settings"))
         logs, receipts = retention_service.cleanup()
         audit_service.audit("limpeza")
         db.session.commit()

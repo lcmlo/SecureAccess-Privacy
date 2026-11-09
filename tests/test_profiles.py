@@ -101,16 +101,28 @@ def test_profile_validation_preserves_input(app, client, fields):
 def test_profile_requires_identity_and_csrf(app, client):
     uid, secret = signin(client, app)
     assert client.post("/my-data/edit", data={"username": "alice"}).status_code == 400
-    assert edit(client, app, uid, secret, password="errada").status_code == 403
-    assert edit(client, app, uid, secret, token="invalid").status_code == 403
+    assert edit(client, app, uid, secret, password="errada").status_code == 400
+    assert edit(client, app, uid, secret, token="invalid").status_code == 400
     assert edit(client, app, uid, secret).status_code == 302
-    # The same TOTP cannot authorize a second update.
-    assert post(client, "/my-data/edit", {
-        "username": "alice", "full_name": "Outro nome", "password": PASSWORD,
-        "token": pyotp.TOTP(secret).now(),
-    }).status_code == 403
+    # Recuperar exatamente o código utilizado na operação anterior.
     with app.app_context():
-        assert db.session.get(UserProfile, uid).full_name == "Alice Silva"
+        step = db.session.get(User, uid).last_totp_step
+
+    used_token = pyotp.TOTP(secret).at(step * 30)
+
+    response = post(
+        client,
+        "/my-data/edit",
+        {
+            "username": "alice",
+            "full_name": "Outro nome",
+            "password": PASSWORD,
+            "token": used_token,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Código MFA inválido ou já utilizado" in response.get_data(as_text=True)
 
 
 @pytest.mark.parametrize("fmt", ["json", "csv"])

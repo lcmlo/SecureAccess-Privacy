@@ -12,6 +12,7 @@ from flask_login import current_user, login_required
 
 from app.services import privacy_service
 from app.utils.forms import confirm_form_identity
+from werkzeug.exceptions import BadRequest
 
 bp = Blueprint("privacy", __name__)
 
@@ -33,7 +34,11 @@ def export():
             or fmt not in ("json", "csv")
         ):
             abort(400)
-        confirm_form_identity()
+        try:
+            confirm_form_identity()
+        except BadRequest as error:
+            flash(error.description, "error")
+            return redirect(url_for("privacy.export"))
         content, mime = privacy_service.export_data(current_user.id, categories, fmt)
         return Response(
             content,
@@ -49,7 +54,11 @@ def deletion():
     if request.method == "POST":
         if request.form.get("confirmation") != "ELIMINAR":
             abort(400, description="Escreva ELIMINAR para confirmar.")
-        confirm_form_identity()
+        try:
+            confirm_form_identity()
+        except BadRequest as error:
+            flash(error.description, "error")
+            return redirect(url_for("privacy.export"))
         if privacy_service.create_deletion_request(current_user.id):
             flash("Pedido registado. Aguarda análise administrativa.")
         else:

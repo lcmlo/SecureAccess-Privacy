@@ -188,10 +188,10 @@ def confirm_identity(uid, password, token, origin):
     _check_failure_limit(identity)
     if not user or not user.active or not check_password_hash(user.password_hash, password):
         _record_failure(identity)
-        raise Forbidden("Não foi possível confirmar a identidade.")
+        raise BadRequest("Não foi possível confirmar a identidade.")
     if not verify_totp(user, token):
         _record_failure(identity)
-        raise Forbidden("Código MFA inválido ou já utilizado. Aguarde pelo próximo código.")
+        raise BadRequest("Código MFA inválido ou já utilizado. Aguarde pelo próximo código.")
     _clear_failures(identity)
     db.session.commit()
 

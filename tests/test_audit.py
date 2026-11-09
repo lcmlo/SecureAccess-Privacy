@@ -3,7 +3,11 @@ from app.utils.pseudonymization import user_ref
 
 from .conftest import PASSWORD, confirmation, csrf, post, seed, signin
 from .db_helpers import get_db
+import time
+from types import SimpleNamespace
+from unittest.mock import patch
 
+import pyotp
 
 def test_invalid_login_and_pseudonym(app, client):
     uid, secret = seed(app)
@@ -45,11 +49,22 @@ def test_admin_logs_no_direct_identifier_and_self_deletion_blocked(app, client):
         ).status_code
         == 403
     )
-    assert (
-        post(
+    # Utilizar um intervalo TOTP futuro simulado apenas neste teste.
+    fixed_time = int(time.time()) + 90
+    token = pyotp.TOTP(secret).at(fixed_time)
+
+    with patch(
+            "app.services.mfa_service.time",
+            SimpleNamespace(time=lambda: fixed_time),
+    ):
+        response = post(
             client,
             "/admin/users/999",
-            {**confirmation(app, aid, secret), "action": "deactivate"},
-        ).status_code
-        == 404
-    )
+            {
+                "password": PASSWORD,
+                "token": token,
+                "action": "deactivate",
+            },
+        )
+
+    assert response.status_code == 404

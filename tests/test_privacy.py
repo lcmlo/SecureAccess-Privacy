@@ -78,19 +78,25 @@ def test_export_safety_and_ownership(app, client, fmt):
 
 def test_sensitive_confirmation_and_export_categories(app, client):
     uid, secret = signin(client, app)
-    assert (
-        post(
-            client,
-            "/export",
-            {
-                "categories": ["account"],
-                "format": "json",
-                "password": "errada",
-                "token": "000000",
-            },
-        ).status_code
-        == 403
+    response = post(
+        client,
+        "/export",
+        {
+            "categories": ["account"],
+            "format": "json",
+            "password": "errada",
+            "token": "000000",
+        },
     )
+
+    assert response.status_code == 302
+    assert response.location.endswith("/export")
+
+    with client.session_transaction() as sess:
+        assert any(
+            "Não foi possível confirmar a identidade" in message
+            for _, message in sess.get("_flashes", [])
+        )
     assert post(client, "/export", {"categories": ["secrets"], "format": "json"}).status_code == 400
     assert post(client, "/deletion", {"confirmation": "nao"}).status_code == 400
 

@@ -4,6 +4,8 @@ from app.utils.pseudonymization import user_ref
 
 from .conftest import PASSWORD, csrf, post, seed, signin
 from .db_helpers import get_db
+from app.extensions import db
+from app.models import User
 
 
 def test_mfa_login_logout_and_replay(app, client):
@@ -55,20 +57,32 @@ def test_mfa_invalid_and_counter_survives_new_session(app, client):
 
 def test_atomic_totp_replay_and_csrf_for_sensitive_endpoints(app, client):
     uid, secret = signin(client, app)
-    token = pyotp.TOTP(secret).now()
-    assert (
-        post(
-            client,
-            "/export",
-            {
-                "categories": ["account"],
-                "format": "json",
-                "password": PASSWORD,
-                "token": token,
-            },
-        ).status_code
-        == 403
+
+    # Recuperar o intervalo TOTP já utilizado no login.
+    with app.app_context():
+        step = db.session.get(User, uid).last_totp_step
+
+    token = pyotp.TOTP(secret).at(step * 30)
+
+    response = post(
+        client,
+        "/export",
+        {
+            "categories": ["account"],
+            "format": "json",
+            "password": PASSWORD,
+            "token": token,
+        },
     )
+
+    assert response.status_code == 302
+    assert response.location.endswith("/export")
+
+    with client.session_transaction() as sess:
+        assert any(
+            "Código MFA inválido ou já utilizado" in message
+            for _, message in sess.get("_flashes", [])
+        )
     for path in [
         "/export",
         "/deletion",
