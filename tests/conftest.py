@@ -2,6 +2,9 @@ import re
 
 import pyotp
 import pytest
+import time
+from types import SimpleNamespace
+from unittest.mock import patch
 from cryptography.fernet import Fernet
 from flask import g
 from flask_migrate import upgrade
@@ -78,9 +81,24 @@ def seed(app, username="alice", role="user", enabled=True):
 
 def signin(client, app, username="alice", role="user"):
     uid, secret = seed(app, username, role)
-    response = post(client, "/login", {"username": username, "password": PASSWORD})
+
+    response = post(
+        client,
+        "/login",
+        {"username": username, "password": PASSWORD}
+    )
     assert response.status_code == 302
-    response = post(client, "/mfa", {"token": pyotp.TOTP(secret).now()})
+
+    # fixar o instante usado na geração e validação do TOTP.
+    fixed_time = time.time()
+    token = pyotp.TOTP(secret).at(fixed_time)
+
+    with patch(
+        "app.services.mfa_service.time",
+        SimpleNamespace(time=lambda: fixed_time)
+    ):
+        response = post(client, "/mfa", {"token": token})
+
     assert response.status_code == 302
     return uid, secret
 

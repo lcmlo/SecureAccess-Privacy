@@ -19,34 +19,87 @@ from app.utils.pseudonymization import pseudonym, user_ref
 DUMMY_HASH = generate_password_hash("unavailable-account-password")
 
 
-def throttle(scope, identity, origin):
+def _counter_key(category, identity):
+    """Buckets distintos dos antigos, sem guardar IPs, usernames ou IDs em claro."""
+    return pseudonym(f"auth:v2:{category}:{identity}")
+
+
+def _increment_counter(category, identity):
+    """Incremento atómico em SQLite com janela fixa de AUTH_WINDOW_SECONDS."""
     timestamp = int(time.time())
-    for key in (f"{scope}:identity:{identity}", f"{scope}:origin:{origin}"):
-        bucket = pseudonym(key)
-        statement = insert(AuthAttempt).values(
-            bucket=bucket,
-            attempts=1,
-            expires_at=timestamp + current_app.config["AUTH_WINDOW_SECONDS"],
+    statement = insert(AuthAttempt).values(
+        bucket=_counter_key(category, identity),
+        attempts=1,
+        expires_at=timestamp + current_app.config["AUTH_WINDOW_SECONDS"],
+    )
+    expired = AuthAttempt.expires_at <= timestamp
+    statement = statement.on_conflict_do_update(
+        index_elements=["bucket"],
+        set_={
+            "attempts": db.case((expired, 1), else_=AuthAttempt.attempts + 1),
+            "expires_at": db.case(
+                (expired, statement.excluded.expires_at),
+                else_=AuthAttempt.expires_at,
+            ),
+        },
+    ).returning(AuthAttempt.attempts)
+    attempts = db.session.execute(statement).scalar_one()
+    db.session.commit()
+    return attempts
+
+
+def _limit_origin(origin, *, registration=False):
+    """Conta TODOS os pedidos de autenticação, mesmo os bem-sucedidos."""
+    origin = origin or "unknown"
+    count = _increment_counter("requests:origin", origin)
+    if count > current_app.config["AUTH_ORIGIN_MAX_REQUESTS"]:
+        raise TooManyRequests("Demasiados pedidos de autenticação. Aguarde 15 minutos.")
+
+    # Mantém a proteção mais restritiva que já existia para novos registos.
+    if registration:
+        count = _increment_counter("requests:register:origin", origin)
+        if count > current_app.config["AUTH_REGISTER_MAX_REQUESTS"]:
+            raise TooManyRequests("Demasiados pedidos de registo. Aguarde 15 minutos.")
+
+
+def _failure_identity(user, *, username=None, uid=None):
+    if user is not None:
+        return f"user:{user.id}"
+    if username is not None:
+        return f"unknown-username:{username.casefold()}"
+    return f"unknown-id:{uid}"
+
+
+def _check_failure_limit(identity):
+    """Bloqueia pedidos posteriores à quinta falha ainda válida."""
+    counter = db.session.get(AuthAttempt, _counter_key("failures:identity", identity))
+    if (
+        counter is not None
+        and counter.expires_at > int(time.time())
+        and counter.attempts >= current_app.config["AUTH_MAX_ATTEMPTS"]
+    ):
+        raise TooManyRequests("Demasiadas falhas de autenticação. Aguarde 15 minutos.")
+
+
+def _record_failure(identity):
+    """Regista só uma credencial/código inválido; não conta sucessos."""
+    count = _increment_counter("failures:identity", identity)
+    # Protege também de verificações concorrentes que passaram o pré-check.
+    if count > current_app.config["AUTH_MAX_ATTEMPTS"]:
+        raise TooManyRequests("Demasiadas falhas de autenticação. Aguarde 15 minutos.")
+
+
+def _clear_failures(identity):
+    """Chamada apenas após MFA completa ou confirmação de identidade bem-sucedida."""
+    db.session.execute(
+        db.delete(AuthAttempt).where(
+            AuthAttempt.bucket == _counter_key("failures:identity", identity)
         )
-        expired = AuthAttempt.expires_at <= timestamp
-        statement = statement.on_conflict_do_update(
-            index_elements=["bucket"],
-            set_={
-                "attempts": db.case((expired, 1), else_=AuthAttempt.attempts + 1),
-                "expires_at": db.case(
-                    (expired, statement.excluded.expires_at),
-                    else_=AuthAttempt.expires_at,
-                ),
-            },
-        ).returning(AuthAttempt.attempts)
-        attempts = db.session.execute(statement).scalar_one()
-        db.session.commit()
-        if attempts > current_app.config["AUTH_MAX_ATTEMPTS"]:
-            raise TooManyRequests("Demasiadas tentativas. Aguarde 15 minutos.")
+    )
 
 
 def register(username, password, origin, email=""):
-    throttle("register", origin or "local", origin)
+    _limit_origin(origin, registration=True)
     username, _ = validate_profile(username, "")
     email = normalize_email(email)
     if not re.fullmatch(r"[\w.-]{3,64}", username) or not 12 <= len(password) <= 128:
@@ -69,10 +122,13 @@ def register(username, password, origin, email=""):
 
 def start_login(username, password, origin):
     username = username.strip()
-    throttle("login", username.casefold(), origin)
+    _limit_origin(origin)
     user = db.session.scalar(db.select(User).where(User.username.collate("IDENTITY_NOCASE") == username))
+    identity = _failure_identity(user, username=username)
+    _check_failure_limit(identity)
     valid = check_password_hash(user.password_hash if user else DUMMY_HASH, password)
     if not user or not user.active or not valid:
+        _record_failure(identity)
         audit(
             "login",
             user_ref(user.id) if user else pseudonym("unknown:" + username),
@@ -100,8 +156,11 @@ def pending_user():
 
 
 def finish_mfa(user, token, origin, setup=False):
-    throttle("mfa", str(user.id), origin)
+    _limit_origin(origin)
+    identity = _failure_identity(user)
+    _check_failure_limit(identity)
     if not verify_totp(user, token):
+        _record_failure(identity)
         audit("mfa_falha", user_ref(user.id), "falha")
         db.session.commit()
         return False
@@ -117,17 +176,24 @@ def finish_mfa(user, token, origin, setup=False):
     session["authenticated_at"] = time.time()
     login_user(user)
     audit("login", user_ref(user.id))
+    _clear_failures(identity)
     db.session.commit()
     return True
 
 
 def confirm_identity(uid, password, token, origin):
-    throttle("confirm", str(uid), origin)
+    _limit_origin(origin)
     user = db.session.get(User, uid, populate_existing=True)
+    identity = _failure_identity(user, uid=uid)
+    _check_failure_limit(identity)
     if not user or not user.active or not check_password_hash(user.password_hash, password):
+        _record_failure(identity)
         raise Forbidden("Não foi possível confirmar a identidade.")
     if not verify_totp(user, token):
+        _record_failure(identity)
         raise Forbidden("Código MFA inválido ou já utilizado. Aguarde pelo próximo código.")
+    _clear_failures(identity)
+    db.session.commit()
 
 
 def end_session(uid):
