@@ -2,6 +2,9 @@
 
 Evolução académica do [SecureAccess](https://github.com/lcmlo/SecureAccess) com autenticação multifator e funcionalidades de controlo dos dados pessoais. Demonstra minimização, pseudonimização, transparência, menor privilégio e retenção limitada. Não constitui uma declaração de conformidade integral com o RGPD.
 
+![SecureAccessPrivacy](https://github.com/user-attachments/assets/95f6bd11-8060-494d-8b49-91109e174498)
+
+
 ## Arquitetura
 
 Monólito modular Flask com Application Factory, quatro Blueprints, Service Layer, modelos SQLAlchemy e migrações Flask-Migrate/Alembic. Frontend Jinja2, HTML5, CSS3 e JavaScript progressivo, sem frameworks frontend. SQLite continua a ser a base de dados.
@@ -187,7 +190,7 @@ Pedidos: `pendente` → `em processamento` → `concluído`. A conclusão elimin
 - Cookies HttpOnly e SameSite=Lax; Secure em HTTPS; HSTS em pedidos HTTPS.
 - Flask-WTF valida CSRF assinado em todos os POST, inclusive autenticação e logout.
 - SQLAlchemy parametriza consultas. Validação no servidor, autoescape Jinja, CSP só com scripts locais, proteção contra framing, `no-store` e `no-referrer`.
-- Cinco tentativas por identidade/origem a cada 15 minutos; contadores SQLite HMAC persistem entre processos/reinícios. Não se guardam IPs em bruto nem se confia em `X-Forwarded-For` arbitrário.
+- Limite de cinco falhas de autenticação por identidade numa janela de 15 minutos. Adicionalmente, existe um limite de 30 pedidos por origem no mesmo período, independentemente do sucesso ou falha. Os contadores são armazenados em SQLite com identificadores pseudonimizados por HMAC-SHA256 e persistem entre processos/reinícios. Não se guardam endereços IP em bruto nem se confia em `X-Forwarded-For` arbitrário.
 - Exportações e operações sensíveis exigem palavra-passe e um código MFA ainda não usado. Depois de iniciar sessão, aguardar pelo próximo código.
 - Exportação por lista positiva: exclui hashes, segredos, chaves, tokens, sessões e contadores internos. O titular é sempre selecionado pela identidade autenticada.
 - Auditoria contém apenas referência HMAC, evento, data e resultado. As referências são dados pessoais pseudonimizados, não dados anónimos. Não há endpoints para editar logs.
